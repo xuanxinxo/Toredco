@@ -5,51 +5,34 @@ import { getAdminFromRequest } from '../../../../lib/auth';
 // GET /api/admin/jobs - Lấy danh sách việc làm (admin)
 export async function GET(request: NextRequest) {
   try {
-    // Kiểm tra authentication
     const user = getAdminFromRequest(request);
     if (!user || user.role !== 'admin') {
-      return NextResponse.json(
-        { success: false, message: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
     const status = searchParams.get('status');
 
-    let filteredJobs = [...jobs];
-
-    // Filter theo status
+    let query = 'SELECT * FROM jobs';
+    const params: any[] = [];
     if (status && status !== 'all') {
-      filteredJobs = filteredJobs.filter(job => job.status === status);
+      query += ' WHERE status = ?';
+      params.push(status);
     }
+    query += ' ORDER BY postedDate DESC';
 
-    // Sort theo ngày đăng (mới nhất trước)
-    filteredJobs.sort((a, b) => new Date(b.postedDate).getTime() - new Date(a.postedDate).getTime());
+    const [rows] = await pool.query(query, params);
+    const jobs = Array.isArray(rows)
+      ? rows.map((job: any) => ({
+          ...job,
+          requirements: job.requirements ? JSON.parse(job.requirements) : [],
+          benefits: job.benefits ? JSON.parse(job.benefits) : [],
+        }))
+      : [];
 
-    // Pagination
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedJobs = filteredJobs.slice(startIndex, endIndex);
-
-    return NextResponse.json({
-      success: true,
-      data: paginatedJobs,
-      pagination: {
-        page,
-        limit,
-        total: filteredJobs.length,
-        totalPages: Math.ceil(filteredJobs.length / limit)
-      }
-    });
-
+    return NextResponse.json({ success: true, data: jobs });
   } catch (error) {
-    return NextResponse.json(
-      { success: false, message: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
   }
 }
 
