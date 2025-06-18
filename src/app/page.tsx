@@ -4,14 +4,14 @@ import FreelancerList from '../components/freelancerList/FreelancerList';
 import JobList from '../components/JobList/JobList';
 import { HiringList } from '../components/hiringList/HiringList';
 import { ReviewSection } from '../components/reviewSection/ReviewSection';
+import Banner from '../components/Banner/Banner';
 
 export default function Home() {
   return (
     <>
+      <Banner />
       <HeroSection />
       <FeaturesSection />
-      
-      {/* Grid section for Việc làm mới nhất and Ứng viên nổi bật */}
       <div className="grid grid-cols-1 md:grid-cols-10 gap-6 mb-8">
         <div className="md:col-span-7">
           <JobList />
@@ -20,8 +20,6 @@ export default function Home() {
           <FreelancerList />
         </div>
       </div>
-
-      {/* Bottom section for Người tuyển đang cần and Đánh giá từ người dùng */}
       <div className="space-y-8">
         <HiringList />
         <ReviewSection />

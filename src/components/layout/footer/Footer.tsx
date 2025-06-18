@@ -7,7 +7,7 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Cột 1: Thông tin công ty */}
         <div>
-          <h2 className="font-bold uppercase mb-4">ViecLab là dự án chiến lược bởi<br/> TOREDCO – Công ty tư vấn và đào tạo <br/>nhân lực hàng đầu</h2>
+          <h2 className="font-bold uppercase mb-4">ViecLab là dự án chiến lược bởi<br /> TOREDCO – Công ty tư vấn và đào tạo <br />nhân lực hàng đầu</h2>
           <ul className="space-y-2">
             <li className="flex items-center gap-2">
               📞 (0236)6 526 368 – 0932 512 521
