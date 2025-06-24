@@ -16,18 +16,17 @@ export default function AdminLogin() {
     setError('');
 
     try {
-      const response = await fetch('/api/admin/login', {
-        method: 'POST',
+      const response = await fetch("/api/admin/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ username, password }),
+        credentials: "include",
       });
 
       const data = await response.json();
-
       if (data.success) {
-        localStorage.setItem('adminToken', data.data.token);
         router.push('/admin');
       } else {
         setError(data.message || 'Đăng nhập thất bại');

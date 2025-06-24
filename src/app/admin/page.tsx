@@ -24,39 +24,38 @@ export default function AdminDashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    // Kiểm tra authentication
-    const token = localStorage.getItem('adminToken');
-    if (!token) {
-      router.push('/admin/login');
-      return;
-    }
-
-    // Load dashboard stats
+    const loadDashboardStats = async () => {
+      try {
+        setLoading(true);
+        setStats({
+          totalJobs: 25,
+          totalFreelancers: 15,
+          totalReviews: 30,
+          activeJobs: 20,
+          pendingJobs: 5,
+        });
+      } catch (error) {
+        console.error("Error loading stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
     loadDashboardStats();
-  }, [router]);
+  }, []);
 
-  const loadDashboardStats = async () => {
+  const handleLogout = async () => {
     try {
-      // Trong thực tế sẽ gọi API
-      setStats({
-        totalJobs: 25,
-        totalFreelancers: 15,
-        totalReviews: 30,
-        activeJobs: 20,
-        pendingJobs: 5
+      await fetch("/api/admin/logout", {
+        method: "POST",
+        credentials: "include", //phải có để gửi cookie
       });
+
+      router.push("/admin/login");
     } catch (error) {
-      console.error('Error loading stats:', error);
-    } finally {
-      setLoading(false);
+      console.error("Logout failed:", error);
     }
   };
-
-  const handleLogout = () => {
-    localStorage.removeItem('adminToken');
-    router.push('/admin/login');
-  };
-
+  
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">

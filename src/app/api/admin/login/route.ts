@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateAdmin } from '../../../../lib/auth';
+import { serverCookieHelper } from '@/src/lib/cookieHelper';
 
 // Mock admin data - trong thực tế sẽ lấy từ database
 const admins = [
@@ -42,18 +43,32 @@ export async function POST(request: NextRequest) {
     // Đây là mock token
     const token = 'mock-admin-token';
 
-    return NextResponse.json({
+    // return NextResponse.json({
+    //   success: true,
+    //   data: {
+    //     user: {
+    //       id: user.userId,
+    //       username: user.username,
+    //       role: user.role
+    //     },
+    //     token
+    //   },
+    //   message: 'Login successful'
+    // });
+    const response = NextResponse.json({
       success: true,
       data: {
         user: {
           id: user.userId,
           username: user.username,
-          role: user.role
+          role: user.role,
         },
-        token
       },
-      message: 'Login successful'
+      message: "Login successful",
     });
+
+    serverCookieHelper.setTokenToResponse(response, token);
+    return response;
 
   } catch (error) {
     return NextResponse.json(
