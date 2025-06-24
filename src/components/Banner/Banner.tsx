@@ -11,7 +11,7 @@ export default function Banner() {
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    const interval = setInterval(() => {  
       setCurrent((prev) => (prev + 1) % images.length);
     }, 3000); // 3 giây đổi hình
     return () => clearInterval(interval);
