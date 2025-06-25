@@ -5,6 +5,7 @@ import JobList from '../components/JobList/JobList';
 import { HiringList } from '../components/hiringList/HiringList';
 import { ReviewSection } from '../components/reviewSection/ReviewSection';
 import Banner from '../components/Banner/Banner';
+import Link from 'next/link';
 
 export default function Home() {
   return (
@@ -24,6 +25,9 @@ export default function Home() {
         <HiringList />
         <ReviewSection />
       </div>
+      <Link href="/freelancers" className="text-blue-600 hover:text-blue-800 font-medium">
+        Xem tất cả ứng viên nổi bật →
+      </Link>
     </>
   );
 }

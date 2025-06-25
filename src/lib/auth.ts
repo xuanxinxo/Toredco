@@ -1,14 +1,14 @@
 import jwt from 'jsonwebtoken';
 import { NextRequest } from 'next/server';
+import bcrypt from 'bcryptjs';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
-// Mock admin users - trong thực tế sẽ lấy từ database
 const adminUsers = [
   {
     id: 1,
     username: 'admin',
-    password: 'admin123', // Trong thực tế sẽ hash password
+    password: '123456', 
     role: 'admin'
   }
 ];
@@ -38,16 +38,12 @@ export function verifyToken(token: string): JWTPayload | null {
 // Verify admin token (mock implementation)
 export function verifyAdminToken(token: string): AdminUser | null {
   try {
-    // Trong thực tế sẽ verify JWT token
-    // Đây là mock implementation
-    if (token === 'mock-admin-token') {
-      return {
-        userId: 1,
-        username: 'admin',
-        role: 'admin'
-      };
-    }
-    return null;
+    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    return {
+      userId: decoded.userId,
+      username: decoded.username,
+      role: decoded.role
+    };
   } catch (error) {
     return null;
   }
@@ -90,16 +86,25 @@ export function getAdminFromRequest(request: NextRequest): AdminUser | null {
 
 // Authenticate admin user
 export function authenticateAdmin(username: string, password: string): AdminUser | null {
-  const user = adminUsers.find(u => u.username === username && u.password === password);
-  
+  const user = adminUsers.find(u => u.username === username);
   if (user) {
-    return {
-      userId: user.id,
-      username: user.username,
-      role: user.role
-    };
+    // Nếu password đã hash, dùng bcrypt.compareSync
+    if (user.password.startsWith('$2a$') || user.password.startsWith('$2b$')) {
+      if (bcrypt.compareSync(password, user.password)) {
+        return {
+          userId: user.id,
+          username: user.username,
+          role: user.role
+        };
+      }
+    } else if (user.password === password) {
+      return {
+        userId: user.id,
+        username: user.username,
+        role: user.role
+      };
+    }
   }
-  
   return null;
 }
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateAdmin } from '../../../../lib/auth';
+import jwt from 'jsonwebtoken';
 
 // Mock admin data - trong thực tế sẽ lấy từ database
 const admins = [
@@ -21,6 +22,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { username, password } = body;
 
+    console.log('Login attempt:', { username, password: password ? '***' : 'empty' });
+
     if (!username || !password) {
       return NextResponse.json(
         { success: false, message: 'Username and password are required' },
@@ -30,6 +33,7 @@ export async function POST(request: NextRequest) {
 
     // Authenticate admin
     const user = authenticateAdmin(username, password);
+    console.log('Authentication result:', user);
 
     if (!user) {
       return NextResponse.json(
@@ -38,11 +42,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Trong thực tế sẽ tạo JWT token
-    // Đây là mock token
-    const token = 'mock-admin-token';
+    // Tạo JWT token thực sự
+    const token = jwt.sign(
+      {
+        userId: user.userId,
+        username: user.username,
+        role: user.role
+      },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: {
         user: {
@@ -55,10 +66,27 @@ export async function POST(request: NextRequest) {
       message: 'Login successful'
     });
 
+    // Thêm CORS headers
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+    return response;
+
   } catch (error) {
+    console.error('Login error:', error);
     return NextResponse.json(
       { success: false, message: 'Internal server error' },
       { status: 500 }
     );
   }
+}
+
+// Handle OPTIONS request for CORS
+export async function OPTIONS(request: NextRequest) {
+  const response = new NextResponse(null, { status: 200 });
+  response.headers.set('Access-Control-Allow-Origin', '*');
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  return response;
 } 

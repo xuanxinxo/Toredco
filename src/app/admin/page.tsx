@@ -24,29 +24,54 @@ export default function AdminDashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    // Kiểm tra authentication
-    const token = localStorage.getItem('adminToken');
-    if (!token) {
-      router.push('/admin/login');
-      return;
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('adminToken');
+      console.log('Admin token in /admin:', token);
+      if (!token) {
+        router.replace('/admin/login');
+      } else {
+        loadDashboardStats();
+      }
     }
-
-    // Load dashboard stats
-    loadDashboardStats();
   }, [router]);
 
   const loadDashboardStats = async () => {
     try {
-      // Trong thực tế sẽ gọi API
-      setStats({
-        totalJobs: 25,
-        totalFreelancers: 15,
-        totalReviews: 30,
-        activeJobs: 20,
-        pendingJobs: 5
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch('/api/admin/jobs', {
+        headers: {
+          'Authorization': 'Bearer ' + token
+        }
       });
+      const data = await res.json();
+      console.log('Jobs API response:', data);
+      if (data.success && Array.isArray(data.data)) {
+        setStats({
+          totalJobs: data.data.length,
+          totalFreelancers: 15,
+          totalReviews: 30, 
+          activeJobs: data.data.filter(j => j.status === 'active').length,
+          pendingJobs: data.data.filter(j => j.status === 'pending').length
+        });
+      } else {
+        setStats({
+          totalJobs: 0,
+          totalFreelancers: 0,
+          totalReviews: 0,
+          activeJobs: 0,
+          pendingJobs: 0
+        });
+        console.error('Không lấy được dữ liệu jobs:', data.message);
+      }
     } catch (error) {
       console.error('Error loading stats:', error);
+      setStats({
+        totalJobs: 0,
+        totalFreelancers: 0,
+        totalReviews: 0,
+        activeJobs: 0,
+        pendingJobs: 0
+      });
     } finally {
       setLoading(false);
     }
@@ -61,6 +86,16 @@ export default function AdminDashboard() {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  if (stats.totalJobs === 0) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-xl text-red-600">
+          Không thể tải dữ liệu dashboard. Vui lòng kiểm tra lại token hoặc đăng nhập lại!
+        </div>
       </div>
     );
   }
