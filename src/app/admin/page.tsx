@@ -68,6 +68,16 @@ export default function AdminDashboard() {
     );
   }
 
+  if (stats.totalJobs === 0) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-xl text-red-600">
+          Không thể tải dữ liệu dashboard. Vui lòng kiểm tra lại token hoặc đăng nhập lại!
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header */}

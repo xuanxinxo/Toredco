@@ -3,7 +3,9 @@ import FeaturesSection from '../components/features/FeaturesSection';
 import FreelancerList from '../components/freelancerList/FreelancerList';
 import JobList from '../components/JobList/JobList';
 import { HiringList } from '../components/hiringList/HiringList';
-import { ReviewSection } from '../components/reviewSection/ReviewSection';
+// import ReviewRankingTable, { ReviewSection } from '../components/reviewSection/ReviewSection';
+import ReviewRankingTable from '../components/reviewSection/ReviewSection';
+
 import Banner from '../components/Banner/Banner';
 import CarouselJob from "@/src/components/Banner/CarouselJob";
 import Marquee from '@/src/components/Banner/Marquee';
@@ -29,8 +31,11 @@ export default function Home() {
         />
         <Marquee />
         <HiringList />
-        <ReviewSection />
       </div>
+      <div className="space-y-8">
+        <ReviewRankingTable />
+      </div>
+    
     </>
   );
 }

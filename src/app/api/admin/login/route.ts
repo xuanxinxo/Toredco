@@ -1,79 +1,82 @@
+// app/api/admin/login/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { authenticateAdmin } from '../../../../lib/auth';
+// import { authenticateAdmin } from '@/lib/auth'; 
+import { authenticateAdmin } from '@/src/lib/auth';  // ← cập nhật path cho gọn  
+// ← cập nhật path cho gọn
+import jwt from 'jsonwebtoken';
 import { serverCookieHelper } from '@/src/lib/cookieHelper';
-
-// Mock admin data - trong thực tế sẽ lấy từ database
-const admins = [
-  {
-    id: 1,
-    email: "admin@toredco.com",
-    password: "$2a$10$hashedpassword", // Trong thực tế sẽ hash password
-    name: "Admin TOREDCO",
-    role: "admin",
-    permissions: ["manage_jobs", "manage_freelancers", "manage_reviews", "manage_users"]
-  }
-];
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
-// POST /api/admin/login - Đăng nhập admin
+/* POST /api/admin/login */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { username, password } = body;
+    const { username, password } = await request.json();
 
     if (!username || !password) {
       return NextResponse.json(
         { success: false, message: 'Username and password are required' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    // Authenticate admin
+    /* 1. Xác thực admin */
     const user = authenticateAdmin(username, password);
-
     if (!user) {
       return NextResponse.json(
         { success: false, message: 'Invalid credentials' },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
-    // Trong thực tế sẽ tạo JWT token
-    // Đây là mock token
-    const token = 'mock-admin-token';
+    /* 2. Tạo JWT */
+    const token = jwt.sign(
+      {
+        userId: user.userId,
+        // ⇐ đổi thành user.userId nếu hàm trả về như vậy
+        username: user.username,
+        role: user.role,
+      },
+      JWT_SECRET,
+      { expiresIn: '7d' },
+    );
 
-    // return NextResponse.json({
-    //   success: true,
-    //   data: {
-    //     user: {
-    //       id: user.userId,
-    //       username: user.username,
-    //       role: user.role
-    //     },
-    //     token
-    //   },
-    //   message: 'Login successful'
-    // });
+    /* 3. Trả response + set cookie */
     const response = NextResponse.json({
       success: true,
       data: {
         user: {
-          id: user.userId,
+          userId: user.userId,
+
           username: user.username,
           role: user.role,
         },
       },
-      message: "Login successful",
+      message: 'Login successful',
     });
 
     serverCookieHelper.setTokenToResponse(response, token);
-    return response;
 
-  } catch (error) {
+    /* 4. Thêm CORS header (nếu gọi từ domain khác) */
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+    return response;
+  } catch (err) {
+    console.error('Login error:', err);
     return NextResponse.json(
       { success: false, message: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
-} 
+}
+
+/* OPTIONS cho CORS pre-flight */
+export async function OPTIONS() {
+  const res = new NextResponse(null, { status: 200 });
+  res.headers.set('Access-Control-Allow-Origin', '*');
+  res.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  return res;
+}

@@ -15,6 +15,8 @@ export default function AdminLogin() {
     setLoading(true);
     setError('');
 
+    console.log('Submitting login with:', { username, password: password ? '***' : 'empty' });
+
     try {
       const response = await fetch("/api/admin/login", {
         method: "POST",
@@ -25,13 +27,18 @@ export default function AdminLogin() {
         credentials: "include",
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+
       const data = await response.json();
       if (data.success) {
         router.push('/admin');
       } else {
         setError(data.message || 'Đăng nhập thất bại');
+        console.log('Login failed:', data.message);
       }
     } catch (error) {
+      console.error('Login error:', error);
       setError('Có lỗi xảy ra, vui lòng thử lại');
     } finally {
       setLoading(false);
