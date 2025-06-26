@@ -18,34 +18,21 @@ export default function AdminLogin() {
     console.log('Submitting login with:', { username, password: password ? '***' : 'empty' });
 
     try {
-      const response = await fetch('/api/admin/login', {
-        method: 'POST',
+      const response = await fetch("/api/admin/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ username, password }),
+        credentials: "include",
       });
 
       console.log('Response status:', response.status);
       console.log('Response headers:', response.headers);
 
       const data = await response.json();
-      console.log('Response data:', data);
-
       if (data.success) {
-        try {
-          localStorage.setItem('adminToken', data.data.token);
-          console.log('Token saved:', data.data.token);
-          if (localStorage.getItem('adminToken')) {
-            window.location.replace('/admin');
-          } else {
-            setError('Không thể lưu token vào trình duyệt. Vui lòng thử lại hoặc kiểm tra cài đặt trình duyệt!');
-            console.error('Token not saved in localStorage');
-          }
-        } catch (e) {
-          setError('Lỗi khi lưu token hoặc chuyển trang. Vui lòng thử lại!');
-          console.error('Error saving token or redirecting:', e);
-        }
+        router.push('/admin');
       } else {
         setError(data.message || 'Đăng nhập thất bại');
         console.log('Login failed:', data.message);

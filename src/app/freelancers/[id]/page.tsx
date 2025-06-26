@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+// import ReviewSection from '/components/reviewSection/ReviewSection';
 
 // Mock data, có thể thay bằng fetch API thực tế
 const freelancers = [
@@ -43,9 +44,9 @@ export default function FreelancerDetail({ params }: { params: { id: string } })
 
   // Thêm mock contact info cho nhà tuyển dụng
   const contactInfo = {
-    email: freelancer.email || 'freelancer@example.com',
-    phone: freelancer.phone || '0123 456 789',
-    zalo: freelancer.zalo || 'https://zalo.me/123456789',
+    email: 'freelancer@example.com',
+    phone: '0123 456 789',
+    zalo: 'https://zalo.me/123456789',
   };
 
   return (
