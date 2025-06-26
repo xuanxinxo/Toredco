@@ -33,13 +33,14 @@ export default function JobList() {
       const response = await fetch('/api/jobs?limit=6&status=active');
       const data = await response.json();
       
-      if (data.success) {
+      if (data.success && Array.isArray(data.data)) {
         setJobs(data.data);
       } else {
+        setJobs([]);
         setError('Không thể tải danh sách việc làm');
       }
     } catch (error) {
-      console.error('Error loading jobs:', error);
+      setJobs([]);
       setError('Có lỗi xảy ra khi tải dữ liệu');
     } finally {
       setLoading(false);

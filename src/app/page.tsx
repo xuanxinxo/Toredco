@@ -3,7 +3,8 @@ import FeaturesSection from '../components/features/FeaturesSection';
 import FreelancerList from '../components/freelancerList/FreelancerList';
 import JobList from '../components/JobList/JobList';
 import { HiringList } from '../components/hiringList/HiringList';
-import ReviewRankingTable, { ReviewSection } from '../components/reviewSection/ReviewSection';
+import ReviewRankingTable from '../components/reviewSection/ReviewSection';
+
 import Banner from '../components/Banner/Banner';
 
 export default function Home() {

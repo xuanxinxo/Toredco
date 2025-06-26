@@ -78,14 +78,19 @@ export function getUserFromRequest(request: NextRequest): JWTPayload | null {
 
 // Get admin user from request
 export function getAdminFromRequest(request: NextRequest): AdminUser | null {
-  const authHeader = request.headers.get('authorization');
-  
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return null;
+  // Lấy từ cookie trước
+  const cookieToken = request.cookies.get('adminToken')?.value;
+  if (cookieToken) {
+    const user = verifyAdminToken(cookieToken);
+    if (user) return user;
   }
-
-  const token = authHeader.substring(7);
-  return verifyAdminToken(token);
+  // Lấy từ header Authorization
+  const authHeader = request.headers.get('authorization');
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.substring(7);
+    return verifyAdminToken(token);
+  }
+  return null;
 }
 
 // Authenticate admin user
