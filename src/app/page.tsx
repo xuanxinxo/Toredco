@@ -3,7 +3,7 @@ import FeaturesSection from '../components/features/FeaturesSection';
 import FreelancerList from '../components/freelancerList/FreelancerList';
 import JobList from '../components/JobList/JobList';
 import { HiringList } from '../components/hiringList/HiringList';
-import { ReviewSection } from '../components/reviewSection/ReviewSection';
+import ReviewRankingTable, { ReviewSection } from '../components/reviewSection/ReviewSection';
 import Banner from '../components/Banner/Banner';
 
 export default function Home() {
@@ -22,7 +22,7 @@ export default function Home() {
       </div>
       <div className="space-y-8">
         <HiringList />
-        <ReviewSection />
+        <ReviewRankingTable />
       </div>
     </>
   );
