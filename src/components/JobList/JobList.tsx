@@ -100,12 +100,18 @@ export default function JobList() {
   async function loadJobs() {
     try {
       setLoading(true);
-      const res = await fetch('/api/jobs?limit=6&status=active');
-      const { success, data } = await res.json();
-      setJobs(success && data.length ? data : mockJobs);
-    } catch {
-      setError('Không thể tải dữ liệu, đã hiển thị mẫu.');
-      setJobs(mockJobs);
+      const response = await fetch('/api/jobs?limit=6&status=active');
+      const data = await response.json();
+      
+      if (data.success && Array.isArray(data.data)) {
+        setJobs(data.data);
+      } else {
+        setJobs([]);
+        setError('Không thể tải danh sách việc làm');
+      }
+    } catch (error) {
+      setJobs([]);
+      setError('Có lỗi xảy ra khi tải dữ liệu');
     } finally {
       setLoading(false);
     }
