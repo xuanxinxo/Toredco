@@ -46,6 +46,7 @@ export default function JobDetail() {
     } finally {
       setLoading(false);
     }
+
   };
 
   if (loading) {
@@ -77,7 +78,7 @@ export default function JobDetail() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <Link href="/" className="text-blue-600 hover:text-blue-800">
-              ← Quay lại trang chủ
+              ← Quay lại trang chủsss
             </Link>
             <h1 className="text-2xl font-bold text-gray-900">Chi tiết việc làm</h1>
           </div>
