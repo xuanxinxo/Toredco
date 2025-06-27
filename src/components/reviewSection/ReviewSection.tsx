@@ -11,6 +11,7 @@ type Review = {
   dob?: string;
   experience?: number;
   hometown?: string;
+  avatar?: string;
 };
 
 const RANKS = [5, 4, 3] as const;
@@ -63,7 +64,7 @@ export default function ReviewRankingTable() {
             Bảng Xếp Hạng Sao
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl">
-            Khám phá những nhân tài và doanh nghiệp xuất sắc nhất được đánh giá bởi cộng đồng
+            Khám phá những nhân tài và doanh nghiệp xuất sắc nhất được đánh giá bởi cộng đồng fmfmfmfmfmf
           </p>
         </div>
 
@@ -105,7 +106,7 @@ export default function ReviewRankingTable() {
                         r.name ? (
                           <div
                             key={r.id}
-                            className="group relative bg-white border border-gray-200 rounded-xl p-4 text-left shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 overflow-hidden"
+                            className={`group relative border border-gray-200 rounded-xl p-4 text-left shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 overflow-hidden ${getStarBg(star)}`}
                             style={{
                               animationDelay: `${idx * 100}ms`,
                               animation: 'fadeInUp 0.6s ease-out forwards'
@@ -117,7 +118,7 @@ export default function ReviewRankingTable() {
                               <div className="flex items-center gap-3 mb-3">
                                 <div className="relative">
                                   <img
-                                    src={r.ava || '/img/ava.jpg'}
+                                    src={r.avatar || '/img/ava.jpg'}
                                     alt={r.name}
                                     className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-md"
                                   />
@@ -189,15 +190,19 @@ export default function ReviewRankingTable() {
                         r.name ? (
                           <div
                             key={r.id}
-                            className="group relative bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-xl p-4 text-gray-800 font-semibold shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:border-purple-300 overflow-hidden"
+                            className={`group relative border border-gray-200 rounded-xl p-4 text-gray-800 font-semibold shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:border-purple-300 overflow-hidden ${getStarBg(star)}`}
                             style={{
                               animationDelay: `${idx * 100}ms`,
                               animation: 'fadeInUp 0.6s ease-out forwards'
                             }}
                           >
                             <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                            
-                            <div className="relative z-10 flex items-center justify-center h-16">
+                            <div className="relative z-10 flex flex-col items-center justify-center h-24 mb-2">
+                              <img
+                                src={r.avatar || '/img/ava.jpg'}
+                                alt={r.name}
+                                className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-md mb-2"
+                              />
                               <div className="text-center">
                                 <div className="text-lg font-bold group-hover:text-purple-600 transition-colors">
                                   {r.name}
