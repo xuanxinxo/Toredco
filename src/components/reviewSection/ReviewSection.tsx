@@ -59,12 +59,12 @@ export default function ReviewRankingTable() {
   return (
     <section className="py-16 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
       <div className="max-w-12xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-left mb-12">
+        <div className="text-left mb-12 bg-black bg-opacity-10 p-6 rounded-lg shadow-lg">
           <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
             Bảng Xếp Hạng Sao
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl">
-            Khám phá những nhân tài và doanh nghiệp xuất sắc nhất được đánh giá bởi cộng đồng fmfmfmfmfmf
+            Khám phá những nhân tài và doanh nghiệp xuất sắc nhất được đánh giá bởi cộng đồng
           </p>
         </div>
 

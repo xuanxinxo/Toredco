@@ -1,132 +1,149 @@
-'use client';
+"use client";
 
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 export default function RegisterPage() {
+  const [form, setForm] = useState({ email: '', name: '', password: '', confirm: '' });
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleRegister = () => {
-    // Simulate successful registration
-    // In a real application, you would send user data to a server here
-    router.push('/'); // Redirect to home page
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setForm(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMessage(null);
+    if (form.password !== form.confirm) {
+      setMessage('Mật khẩu xác nhận không khớp.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.email, password: form.password, name: form.name }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMessage(`Đăng ký thành công! Xin chào ${data.user.name}`);
+        setTimeout(() => router.push('/'), 1500);
+      } else if (data.errors) {
+        // Zod fieldErrors
+        const errs = Object.values(data.errors).flat().join(' ');
+        setMessage(errs);
+      } else if (data.error) {
+        setMessage(data.error);
+      } else {
+        setMessage('Có lỗi xảy ra');
+      }
+    } catch (err) {
+      setMessage('Không thể kết nối đến server');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white relative overflow-hidden">
-      {/* Background with particles/stars */}
-      <div className="absolute inset-0 z-0 opacity-20">
-        <Image
-          src="/bg-login.jpg" // Reuse the same background image for consistency
-          alt="Background"
-          fill
-          className="object-cover"
-        />
-      </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+      <form onSubmit={handleRegister} className="relative z-10 flex flex-col md:flex-row bg-gray-800 bg-opacity-90 rounded-xl shadow-2xl p-8 md:p-12 max-w-4xl w-full mx-4">
+        <div className="w-full md:w-1/2 p-4 md:p-8 flex flex-col justify-center space-y-6">
+          <h2 className="text-4xl font-bold text-center">Đăng ký</h2>
+          {message && <div className="text-center text-red-400">{message}</div>}
 
-      <div className="relative z-10 flex flex-col md:flex-row bg-gray-800 bg-opacity-90 rounded-xl shadow-2xl p-8 md:p-12 max-w-4xl w-full mx-4">
-        {/* Left Section: Register Form */}
-        <div className="w-full md:w-1/2 p-4 md:p-8 flex flex-col justify-center">
-          <h2 className="text-4xl font-bold text-center mb-8">Register</h2>
+          <input
+            id="name"
+            type="text"
+            placeholder="Họ và tên"
+            value={form.name}
+            onChange={handleChange}
+            className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
+          <input
+            id="email"
+            type="email"
+            placeholder="Email"
+            value={form.email}
+            onChange={handleChange}
+            className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
 
-          <div className="flex flex-col space-y-4 mb-6">
-            <button className="flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-white py-3 px-6 rounded-lg text-lg transition duration-300">
-              <Image src="/icons/google.svg" alt="Google Logo" width={24} height={24} className="mr-3" />
-              Sign Up with Google
-            </button>
-            <button className="flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-white py-3 px-6 rounded-lg text-lg transition duration-300">
-              <Image src="/icons/facebook-white.svg" alt="Facebook Logo" width={24} height={24} className="mr-3" />
-              Sign Up with Facebook
-            </button>
-          </div>
-
-          <div className="text-center text-gray-500 mb-6">Or</div>
-
-          <div className="space-y-6">
-            <div>
-              <label htmlFor="username" className="block text-lg font-medium text-gray-300 mb-2">Username</label>
-              <input
-                type="text"
-                id="username"
-                placeholder="Enter your username"
-                className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label htmlFor="email" className="block text-lg font-medium text-gray-300 mb-2">Email</label>
-              <input
-                type="email"
-                id="email"
-                placeholder="Enter your email"
-                className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="block text-lg font-medium text-gray-300 mb-2">Password</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  id="password"
-                  placeholder="Enter your password"
-                  className="w-full p-3 pr-10 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white"
-                >
-                  {showPassword ? (
-                    <Image src="/icons/eye-slash.svg" alt="Hide Password" width={20} height={20} />
-                  ) : (
-                    <Image src="/icons/eye.svg" alt="Show Password" width={20} height={20} />
-                  )}
-                </button>
-              </div>
-            </div>
-            <div>
-              <label htmlFor="confirm-password" className="block text-lg font-medium text-gray-300 mb-2">Confirm Password</label>
-              <div className="relative">
-                <input
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  id="confirm-password"
-                  placeholder="Confirm your password"
-                  className="w-full p-3 pr-10 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white"
-                >
-                  {showConfirmPassword ? (
-                    <Image src="/icons/eye-slash.svg" alt="Hide Password" width={20} height={20} />
-                  ) : (
-                    <Image src="/icons/eye.svg" alt="Show Password" width={20} height={20} />
-                  )}
-                </button>
-              </div>
-            </div>
+          <div className="relative">
+            <input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Mật khẩu"
+              value={form.password}
+              onChange={handleChange}
+              className="w-full p-3 pr-10 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
             <button
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-xl transition duration-300"
-              onClick={handleRegister}
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white"
             >
-              Register
+              {showPassword ? (
+                <Image src="/icons/eye-slash.svg" alt="Hide" width={20} height={20} />
+              ) : (
+                <Image src="/icons/eye.svg" alt="Show" width={20} height={20} />
+              )}
             </button>
           </div>
+
+          <div className="relative">
+            <input
+              id="confirm"
+              type={showConfirm ? 'text' : 'password'}
+              placeholder="Xác nhận mật khẩu"
+              value={form.confirm}
+              onChange={handleChange}
+              className="w-full p-3 pr-10 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirm(!showConfirm)}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white"
+            >
+              {showConfirm ? (
+                <Image src="/icons/eye-slash.svg" alt="Hide" width={20} height={20} />
+              ) : (
+                <Image src="/icons/eye.svg" alt="Show" width={20} height={20} />
+              )}
+            </button>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg text-xl transition duration-300 disabled:opacity-50"
+          >
+            {loading ? 'Đang gửi...' : 'Đăng ký'}
+          </button>
         </div>
 
-        {/* Right Section: Welcome Message (reusing from login) */}
         <div className="w-full md:w-1/2 p-4 md:p-8 flex flex-col items-center justify-center text-center bg-gradient-to-br from-blue-700 to-indigo-900 rounded-lg md:rounded-l-none md:ml-4 mt-8 md:mt-0">
           <h2 className="text-4xl italic font-semibold leading-relaxed">
-            Chào mừng bạn đã <br />
-            đến với Toredco nơi <br />
-            không làm bạn thất <br />
+            Chào mừng bạn đã
+            <br />
+            đến với Toredco nơi
+            <br />
+            không làm bạn thất
+            <br />
             vọng
           </h2>
         </div>
-      </div>
+      </form>
     </div>
   );
-} 
+}

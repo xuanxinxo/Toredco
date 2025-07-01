@@ -124,7 +124,7 @@ export function HiringList() {
   return (
     <section className="py-16 bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="max-w-12xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-left mb-12">
+        <div className="text-left mb-12 bg-black bg-opacity-10 p-6 rounded-lg shadow-lg">
           <h3 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
             Người tuyển đang cần
           </h3>
