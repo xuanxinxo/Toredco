@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/src/lib/prisma';
 
 export async function GET() {
   try {
@@ -12,12 +12,37 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const { title, description } = await req.json();
-    if (!title || !description) {
-      return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
+    const {
+      title,
+      company,
+      location,
+      type,
+      salary,
+      description,
+      requirements,
+      benefits,
+      deadline,
+    } = await req.json();
+
+    // Validate required fields
+    if (!title || !company || !location || !type || !salary || !description || !deadline) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
+
     const job = await prisma.job.create({
-      data: { title, description },
+      data: {
+        title,
+        company,
+        location,
+        type,
+        salary,
+        description,
+        requirements: requirements ?? [],
+        benefits: benefits ?? [],
+        deadline: new Date(deadline),
+        status: 'active',
+        postedDate: new Date(),
+      },
     });
     return NextResponse.json(job, { status: 201 });
   } catch (error) {
