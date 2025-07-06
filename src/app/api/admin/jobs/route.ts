@@ -1,87 +1,53 @@
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '../../../../lib/db';
-import { getAdminFromRequest } from '../../../../lib/auth';
+import { PrismaClient } from '@prisma/client';
+// import { getAdminFromRequest } from '@/lib/auth'; // đảm bảo hàm trả user hợp lệ
+import { getAdminFromRequest } from '@/src/lib/auth';
 
-// GET /api/admin/jobs - Lấy danh sách việc làm (admin)
+const prisma = new PrismaClient();
+
+// GET /api/admin/jobs
 export async function GET(request: NextRequest) {
   try {
-    const user = getAdminFromRequest(request);
-    if (!user || user.role !== 'admin') {
+    const admin = getAdminFromRequest(request);
+    if (!admin || admin.role !== 'admin')
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
-    }
 
-    const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status');
-
-    let query = 'SELECT * FROM jobs';
-    const params: any[] = [];
-    if (status && status !== 'all') {
-      query += ' WHERE status = ?';
-      params.push(status);
-    }
-    query += ' ORDER BY postedDate DESC';
-
-    const [rows] = await pool.query(query, params);
-    const jobs = Array.isArray(rows)
-      ? rows.map((job: any) => ({
-          ...job,
-          requirements: job.requirements ? JSON.parse(job.requirements) : [],
-          benefits: job.benefits ? JSON.parse(job.benefits) : [],
-        }))
-      : [];
+    const status = request.nextUrl.searchParams.get('status');
+    const jobs = await prisma.job.findMany({
+      where: status && status !== 'all' ? { status } : {},
+      orderBy: { postedDate: 'desc' },
+    });
 
     return NextResponse.json({ success: true, data: jobs });
-  } catch (error) {
+  } catch (err) {
+    console.error(err);
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
   }
 }
 
-// POST /api/admin/jobs - Tạo việc làm mới (admin)
+// POST /api/admin/jobs
 export async function POST(request: NextRequest) {
   try {
-    // Kiểm tra authentication
-    const user = getAdminFromRequest(request);
-    if (!user || user.role !== 'admin') {
-      return NextResponse.json(
-        { success: false, message: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    const admin = getAdminFromRequest(request);
+    if (!admin || admin.role !== 'admin')
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
-    
-    // Validation
-    if (!body.title || !body.company || !body.location) {
-      return NextResponse.json(
-        { success: false, message: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
+    console.log('>>body:', body);
+    if (!body.title || !body.company || !body.location)
+      return NextResponse.json({ success: false, message: 'Missing required fields' }, { status: 400 });
 
-    const [result] = await pool.query(
-      'INSERT INTO jobs (title, company, location, type, salary, description, requirements, benefits, postedDate, deadline, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, "active")',
-      [
-        body.title,
-        body.company,
-        body.location,
-        body.type,
-        body.salary,
-        body.description,
-        JSON.stringify(body.requirements || []),
-        JSON.stringify(body.benefits || []),
-        body.deadline
-      ]
-    );
-
-    return NextResponse.json({
-      success: true,
-      message: 'Job created successfully'
-    }, { status: 201 });
-
-  } catch (error) {
-    return NextResponse.json(
-      { success: false, message: 'Internal server error' },
-      { status: 500 }
-    );
+    await prisma.job.create({
+      data: {
+        ...body,
+        deadline: body.deadline ? new Date(body.deadline) : undefined,
+        status: 'active',
+        postedDate: new Date()
+      }
+    });
+    return NextResponse.json({ success: true, message: 'Job created successfully' }, { status: 201 });
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json({ success: false, message: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
-} 
+}

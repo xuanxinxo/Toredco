@@ -1,17 +1,32 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"  
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider = "mongodb"
+  url      = env("MONGODB_URI")
 }
 
 model User {
-  id       Int    @id @default(autoincrement())
-  email    String @unique
-  password String
-  name     String
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
+  password  String
+  name      String
   createdAt DateTime @default(now())
 }
+
+model Job {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  title        String
+  company      String
+  location     String
+  type         String
+  salary       String
+  description  String
+  requirements String[]
+  benefits     String[]
+  deadline     DateTime
+  status       String   @default("active")
+  postedDate   DateTime @default(now())
+}
+
