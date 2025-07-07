@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 export interface Job {
-  id: number;
+  id: string; // Sửa từ number thành string
   title: string;
   company: string;
   location: string;
@@ -27,14 +27,21 @@ export default function JobList() {
     async function loadJobs() {
       try {
         setLoading(true);
-        const response = await fetch('/api/jobs?limit=6&status=active');
+        setError('');
+        
+        const response = await fetch('/api/jobs/new');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
-        if (data.success && Array.isArray(data.data)) {
-          setJobs(data.data);
+        if (Array.isArray(data)) {
+          setJobs(data);
         } else {
           setError('Không thể tải danh sách việc làm');
         }
       } catch (err) {
+        console.error('Error loading jobs:', err);
         setError('Có lỗi xảy ra khi tải dữ liệu');
       } finally {
         setLoading(false);

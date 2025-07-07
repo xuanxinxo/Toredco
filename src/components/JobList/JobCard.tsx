@@ -27,7 +27,7 @@
             href={`/jobs/${job.id}`}
             className="text-sm text-blue-600 hover:text-blue-800 font-medium"
             >
-            Xem chi tiết →
+            Xem chi tiết →  123
             </Link>
         </div>
         <p className="mt-2 text-gray-600 text-sm truncate">

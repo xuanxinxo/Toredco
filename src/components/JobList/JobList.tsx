@@ -46,13 +46,24 @@ export default function JobList({
   async function loadJobs() {
     try {
       setLoading(true);
-      // const res = await fetch('/api/jobs?limit=6&status=active');
-      // const json = await res.json();
-      // setJobs(json.data);
-      setJobs(mockJobs.slice(0, limit)); // dữ liệu mẫu
+      setError("");
+      
+      const res = await fetch('/api/jobs/new');
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
+      const json = await res.json();
+      if (Array.isArray(json)) {
+        setJobs(json.slice(0, limit));
+      } else {
+        throw new Error('Invalid response format');
+      }
     } catch (err) {
       console.error("Error loading jobs:", err);
       setError("Có lỗi xảy ra khi tải dữ liệu");
+      // Fallback to mock data
+      setJobs(mockJobs.slice(0, limit));
     } finally {
       setLoading(false);
     }

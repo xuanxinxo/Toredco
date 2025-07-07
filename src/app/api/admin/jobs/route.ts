@@ -33,21 +33,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
-    console.log('>>body:', body);
     if (!body.title || !body.company || !body.location)
       return NextResponse.json({ success: false, message: 'Missing required fields' }, { status: 400 });
 
-    await prisma.job.create({
-      data: {
-        ...body,
-        deadline: body.deadline ? new Date(body.deadline) : undefined,
-        status: 'active',
-        postedDate: new Date()
-      }
-    });
+    await prisma.job.create({ data: { ...body, status: 'active', postedDate: new Date() } });
     return NextResponse.json({ success: true, message: 'Job created successfully' }, { status: 201 });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ success: false, message: err instanceof Error ? err.message : String(err) }, { status: 500 });
+    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
   }
 }
