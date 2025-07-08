@@ -30,3 +30,19 @@ model Job {
   postedDate   DateTime @default(now())
 }
 
+model NewJob {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  title        String
+  company      String
+  location     String
+  type         String
+  salary       String
+  description  String
+  requirements String[]
+  benefits     String[]
+  deadline     DateTime
+  status       String   @default("active")
+  postedDate   DateTime @default(now())
+  isTopNew     Boolean  @default(true)
+}
+

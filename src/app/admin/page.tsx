@@ -265,11 +265,40 @@ export default function AdminDashboard() {
               <div className="ml-4">
                 <h3 className="text-lg font-semibold text-gray-900">
                   Đăng việc làm
+                </h3> 
+                <p className="text-sm text-gray-600">Tạo việc làm mới</p>
+              </div>
+            </div>
+          </Link>
+           <Link
+            href="/admin/jobs/create"
+            className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <svg
+                  className="w-6 h-6 text-blue-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Đăng việc làm TopNew
                 </h3>
                 <p className="text-sm text-gray-600">Tạo việc làm mới</p>
               </div>
             </div>
           </Link>
+
 
           <Link
             href="/admin/jobs"

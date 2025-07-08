@@ -54,8 +54,8 @@ export default function JobList({
       }
       
       const json = await res.json();
-      if (Array.isArray(json)) {
-        setJobs(json.slice(0, limit));
+      if (Array.isArray(json.data)) {
+        setJobs(json.data.slice(0, limit));
       } else {
         throw new Error('Invalid response format');
       }
@@ -80,6 +80,7 @@ export default function JobList({
               key={i}
               className="border p-4 rounded-lg shadow-sm bg-white animate-pulse"
             >
+              
               <div className="flex justify-between items-start">
                 <div className="flex-1 space-y-2">
                   <div className="h-4 bg-gray-200 rounded" />

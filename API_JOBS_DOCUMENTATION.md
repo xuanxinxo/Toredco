@@ -3,12 +3,6 @@
 ## Tổng quan
 Hệ thống đã được tách thành 2 API riêng biệt để quản lý việc làm:
 
-## Cập nhật mới nhất
-- ✅ Sửa lỗi MongoDB query (loại bỏ `mode: 'insensitive'`)
-- ✅ Thêm error handling và logging
-- ✅ Cải thiện response validation
-- ✅ Thêm file test API
-
 ### 1. API Việc làm mới nhất: `/api/jobs/new`
 
 **Endpoint:** `GET /api/jobs/new`
@@ -109,16 +103,4 @@ GET /api/jobs?page=1&limit=10&search=developer&type=fulltime&location=Hanoi
 1. **Hiệu suất tốt hơn:** API việc làm mới nhất chỉ trả về 5 kết quả, load nhanh hơn
 2. **Tách biệt chức năng:** Mỗi API có mục đích rõ ràng
 3. **Dễ bảo trì:** Có thể tối ưu từng API riêng biệt
-4. **Linh hoạt:** API chính hỗ trợ nhiều tính năng như tìm kiếm, lọc, phân trang
-
-## Testing
-
-Để test API, chạy file `test-api.js`:
-```bash
-node test-api.js
-```
-
-File này sẽ test:
-- ✅ API `/api/jobs/new` - việc làm mới nhất
-- ✅ API `/api/jobs` - tất cả việc làm
-- ✅ API `/api/jobs` với parameters - tìm kiếm và phân trang 
+4. **Linh hoạt:** API chính hỗ trợ nhiều tính năng như tìm kiếm, lọc, phân trang 

@@ -23,12 +23,20 @@
                 </span>
             </div>
             </div>
-            <Link
-            href={`/jobs/${job.id}`}
-            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-            >
-            Xem chi tiết →  123
-            </Link>
+            <div className="flex flex-col gap-2 items-end">
+              <Link
+                href={`/jobs/${job.id}`}
+                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Xem chi tiết →
+              </Link>
+              <Link
+                href={`/jobs/${job.id}`}
+                className="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 font-medium transition-colors"
+              >
+                Ứng tuyển
+              </Link>
+            </div>
         </div>
         <p className="mt-2 text-gray-600 text-sm truncate">
             {job.description}

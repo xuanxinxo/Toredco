@@ -1,23 +1,21 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/src/lib/prisma';
 
+// GET: Lấy danh sách Job mới nhất (không phải NewJob)
 export async function GET() {
   try {
-    console.log('Fetching latest jobs...');
-    
-    // Lấy 5 việc làm mới nhất
-    const newJobs = await prisma.job.findMany({
+    const jobs = await prisma.job.findMany({
       orderBy: { postedDate: 'desc' },
       take: 5,
-      where: {
-        status: 'active'
-      }
+      where: { status: 'active' }
     });
-    
-    console.log(`Found ${newJobs.length} latest jobs`);
-    return NextResponse.json(newJobs);
+    return NextResponse.json({ data: jobs });
   } catch (error) {
-    console.error('Error fetching latest jobs:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
+}
+
+// POST: Không hỗ trợ tạo Job ở route này
+export async function POST() {
+  return NextResponse.json({ success: false, message: 'Not supported' }, { status: 405 });
 } 
