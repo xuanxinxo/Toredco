@@ -6,14 +6,12 @@ import { mockJobs } from "@/src/data";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
+
 import "keen-slider/keen-slider.min.css";
-// import { useKeenSlider } from "keen-slider/react";
 import { useKeenSlider } from "keen-slider/react";
 
 interface JobListProps {
-  /** Số job muốn lấy (mặc định 3) */
   limit?: number;
-  /** Class Tailwind cho vùng chứa (tuỳ chọn) */
   containerClassName?: string;
 }
 
