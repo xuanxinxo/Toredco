@@ -264,14 +264,14 @@ export default function AdminDashboard() {
               </div>
               <div className="ml-4">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  Đăng việc làm
+                  Đăng việc làmssssssssssssssss
                 </h3> 
                 <p className="text-sm text-gray-600">Tạo việc làm mới</p>
               </div>
             </div>
           </Link>
            <Link
-            href="/admin/jobs/create"
+            href="/admin/jobnew/create"
             className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
           >
             <div className="flex items-center">
@@ -359,6 +359,15 @@ export default function AdminDashboard() {
           </Link>
 
           <Link
+            href="/admin/hirings"
+            className="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:bg-blue-50 transition"
+          >
+            <span className="text-3xl mb-2">📋</span>
+            <span className="font-semibold text-lg">Quản lý Hiring</span>
+            <span className="text-gray-500 text-sm mt-1">Xem và chỉnh sửa các Hiring</span>
+          </Link>
+
+          <Link
             href="/admin/reviews"
             className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
           >
@@ -427,6 +436,72 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
+
+        {/* Danh sách ứng viên ứng tuyển */}
+        <ApplicationsTable />
+      </div>
+    </div>
+  );
+}
+
+function ApplicationsTable() {
+  const [applications, setApplications] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function fetchApplications() {
+      setLoading(true);
+      setError("");
+      try {
+        const res = await fetch("/api/applications", { cache: 'no-store' });
+        const json = await res.json();
+        if (json.success) {
+          setApplications(json.data);
+        } else {
+          setError("Không thể tải danh sách ứng viên");
+        }
+      } catch (e) {
+        setError("Có lỗi khi tải dữ liệu");
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchApplications();
+  }, []);
+
+  if (loading) return <div>Đang tải danh sách ứng viên...</div>;
+  if (error) return <div className="text-red-600">{error}</div>;
+  if (applications.length === 0) return <div>Chưa có ứng viên nào ứng tuyển.</div>;
+
+  return (
+    <div className="mt-12">
+      <h2 className="text-2xl font-bold mb-4">Danh sách ứng viên ứng tuyển</h2>
+      <div className="overflow-x-auto">
+        <table className="min-w-full bg-white border rounded-lg">
+          <thead>
+            <tr>
+              <th className="px-4 py-2 border">Tên</th>
+              <th className="px-4 py-2 border">Email</th>
+              <th className="px-4 py-2 border">Số điện thoại</th>
+              <th className="px-4 py-2 border">Tin nhắn/CV</th>
+              <th className="px-4 py-2 border">Vị trí ứng tuyển</th>
+              <th className="px-4 py-2 border">Ngày ứng tuyển</th>
+            </tr>
+          </thead>
+          <tbody>
+            {applications.map((app) => (
+              <tr key={app.id}>
+                <td className="px-4 py-2 border">{app.name}</td>
+                <td className="px-4 py-2 border">{app.email}</td>
+                <td className="px-4 py-2 border">{app.phone || '-'}</td>
+                <td className="px-4 py-2 border">{app.message || '-'}</td>
+                <td className="px-4 py-2 border">{app.hiring?.title || app.hiringId}</td>
+                <td className="px-4 py-2 border">{new Date(app.createdAt).toLocaleString('vi-VN')}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

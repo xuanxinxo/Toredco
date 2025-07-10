@@ -1,126 +1,39 @@
 'use client';
 import Link from 'next/link';
 import HiringFilter from './HiringFilter';
-
-const hirings = [
-  { 
-    id: 1,
-    title: "Tìm đầu bếp", 
-    company: "Nhà hàng XYZ", 
-    location: "Đà Nẵng",
-    type: "Full-time",
-    salary: "15-20 triệu",
-    description: "Cần đầu bếp có tay nghề cao, làm việc ca tối. Ưu tiên người có kinh nghiệm tại nhà hàng khách sạn 4-5 sao...",
-    requirements: [
-      "Kinh nghiệm 3 năm trở lên",
-      "Có chứng chỉ nghề bếp",
-      "Thành thạo các món Á-Âu",
-      "Có khả năng quản lý nhân viên"
-    ],
-    benefits: [
-      "Lương thưởng hấp dẫn",
-      "Bảo hiểm đầy đủ",
-      "Được đào tạo nâng cao",
-      "Cơ hội thăng tiến"
-    ],
-    postedDate: "2024-02-20",
-    deadline: "2024-03-20"
-  },
-  { 
-    id: 2,
-    title: "Tìm nhân viên chạy bàn", 
-    company: "Quán ăn 456", 
-    location: "Hải Châu",
-    type: "Part-time",
-    salary: "15-20k/giờ",
-    description: "Ưu tiên sinh viên làm part-time cuối tuần. Cần người nhanh nhẹn, hoạt bát, có khả năng giao tiếp tốt...",
-    requirements: [
-      "Ngoại hình ưa nhìn",
-      "Giao tiếp tốt",
-      "Có thể làm ca tối",
-      "Ưu tiên sinh viên"
-    ],
-    benefits: [
-      "Lương theo giờ",
-      "Được đào tạo",
-      "Môi trường trẻ trung",
-      "Thưởng theo doanh số"
-    ],
-    postedDate: "2024-02-19",
-    deadline: "2024-03-05"
-  },
-  { 
-    id: 3,
-    title: "Tìm nhân viên bán hàng", 
-    company: "Shop thời trang ABC", 
-    location: "Sơn Trà",
-    type: "Full-time",
-    salary: "8-12 triệu",
-    description: "Cần nhân viên bán hàng có kinh nghiệm trong lĩnh vực thời trang. Có khả năng tư vấn và chăm sóc khách hàng...",
-    requirements: [
-      "Kinh nghiệm bán hàng 1 năm",
-      "Ngoại hình ưa nhìn",
-      "Kỹ năng giao tiếp tốt",
-      "Có kiến thức về thời trang"
-    ],
-    benefits: [
-      "Lương cơ bản + hoa hồng",
-      "Được đào tạo sản phẩm",
-      "Môi trường làm việc năng động",
-      "Thưởng theo doanh số"
-    ],
-    postedDate: "2024-02-18",
-    deadline: "2024-03-15"
-  },
-  { 
-    id: 4,
-    title: "Tìm nhân viên IT", 
-    company: "Công ty Tech Solutions", 
-    location: "Liên Chiểu",
-    type: "Full-time",
-    salary: "20-35 triệu",
-    description: "Tuyển dụng lập trình viên Frontend/Backend có kinh nghiệm với React, Node.js. Làm việc trong môi trường startup...",
-    requirements: [
-      "Kinh nghiệm 2-3 năm",
-      "Thành thạo React/Node.js",
-      "Có portfolio projects",
-      "Khả năng làm việc nhóm"
-    ],
-    benefits: [
-      "Lương cạnh tranh",
-      "Bảo hiểm đầy đủ",
-      "Remote work linh hoạt",
-      "Stock options"
-    ],
-    postedDate: "2024-02-17",
-    deadline: "2024-03-25"
-  },
-  { 
-    id: 5,
-    title: "Tìm nhân viên marketing", 
-    company: "Agency Digital Pro", 
-    location: "Cẩm Lệ",
-    type: "Full-time",
-    salary: "12-18 triệu",
-    description: "Tuyển dụng chuyên viên marketing digital có kinh nghiệm quản lý Facebook Ads, Google Ads và content marketing...",
-    requirements: [
-      "Kinh nghiệm marketing 2 năm",
-      "Thành thạo Facebook/Google Ads",
-      "Có portfolio campaigns",
-      "Kỹ năng phân tích dữ liệu"
-    ],
-    benefits: [
-      "Lương + thưởng performance",
-      "Được training liên tục",
-      "Môi trường sáng tạo",
-      "Cơ hội thăng tiến nhanh"
-    ],
-    postedDate: "2024-02-16",
-    deadline: "2024-03-10"
-  }
-];
+import { useEffect, useState } from 'react';
+import ApplyForm from './ApplyForm';
 
 export function HiringList() {
+  const [hirings, setHirings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [showApplyModal, setShowApplyModal] = useState<string|null>(null);
+
+  useEffect(() => {
+    async function fetchHirings() {
+      setLoading(true);
+      setError('');
+      try {
+        const res = await fetch('/api/hirings');
+        const json = await res.json();
+        if (json.success) {
+          setHirings(json.data);
+        } else {
+          setError('Không thể tải dữ liệu');
+        }
+      } catch (e) {
+        setError('Có lỗi khi tải dữ liệu');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchHirings();
+  }, []);
+
+  if (loading) return <div>Đang tải...</div>;
+  if (error) return <div>{error}</div>;
+
   return (
     <section className="py-16 bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="max-w-12xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -211,7 +124,16 @@ export function HiringList() {
                     <span>Hạn: {new Date(hiring.deadline).toLocaleDateString('vi-VN')}</span>
                   </div>
                 </div>
+                <button
+                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  onClick={() => setShowApplyModal(hiring.id)}
+                >
+                  Ứng tuyển
+                </button>
               </div>
+              {showApplyModal === hiring.id && (
+                <ApplyForm hiringId={hiring.id} onClose={() => setShowApplyModal(null)} />
+              )}
             </div>
           ))}
         </div>

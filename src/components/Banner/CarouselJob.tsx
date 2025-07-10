@@ -26,7 +26,7 @@ export default function CarouselJob() {
   }, [current]);
 
   return (
-    <div className="relative w-full mt-2">
+    <div className="relative w-full mt-14">
       <section className="w-full">
         <div className="relative w-full aspect-[16/9] overflow-hidden rounded-lg">
           {images.map((src, index) => (

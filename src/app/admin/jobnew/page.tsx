@@ -37,7 +37,7 @@ export default function AdminJobs() {
     try {
       setLoading(true);
       const token = localStorage.getItem('adminToken');
-      const response = await fetch(`/api/admin/jobs?status=${filter === 'all' ? '' : filter}`, {
+      const response = await fetch(`/api/admin/newjobs?status=${filter === 'all' ? '' : filter}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -60,7 +60,7 @@ export default function AdminJobs() {
   const handleStatusChange = async (jobId: number, newStatus: string) => {
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await fetch(`/api/admin/jobs/${jobId}`, {
+      const response = await fetch(`/api/admin/newjobs/${jobId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -87,7 +87,7 @@ export default function AdminJobs() {
     if (confirm('Bạn có chắc muốn xóa việc làm này?')) {
       try {
         const token = localStorage.getItem('adminToken');
-        const response = await fetch(`/api/admin/jobs/${jobId}`, {
+        const response = await fetch(`/api/admin/newjobs/${jobId}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -135,10 +135,10 @@ export default function AdminJobs() {
               <h1 className="text-2xl font-bold text-gray-900">Quản lý việc làm</h1>
             </div>
             <Link
-              href="/admin/jobs/create"
+              href="/admin/jobsnew/create"
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
             >
-              + Đăng việc làm mới
+              + Đăng việc làm mới TopNew
             </Link>
           </div>
         </div>

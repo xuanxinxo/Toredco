@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 // import { getAdminFromRequest } from '@/lib/auth'; // đảm bảo hàm trả user hợp lệ
-import { getAdminFromRequest } from '@/src/lib/auth';
+import { getAdminFromRequest } from '../../../../lib/auth';
 
 const prisma = new PrismaClient();
 

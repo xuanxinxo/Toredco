@@ -1,3 +1,4 @@
+'use client';
 import HeroSection from '../components/hero/HeroSection';
 import FeaturesSection from '../components/features/FeaturesSection';
 import FreelancerList from '../components/freelancerList/FreelancerList';
@@ -9,7 +10,8 @@ import ReviewRankingTable from '../components/reviewSection/ReviewSection';
 // import Banner from '../components/Banner/Banner';
 import CarouselJob from "@/src/components/Banner/CarouselJob";
 import Marquee from '@/src/components/Banner/Marquee';
-
+import SpecialJobList from '../components/NewJobList/SpecialJobList';
+import NewJobList from '../components/NewJobList/JobList';
 export default function Home() {
   return (
     <>
@@ -25,7 +27,7 @@ export default function Home() {
         </div>
       </div>
       <div className="space-y-8">
-        <JobList
+        <NewJobList
           limit={4}
           containerClassName="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
         />

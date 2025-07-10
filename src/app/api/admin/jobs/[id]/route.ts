@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '../../../../../lib/db';
 import { getAdminFromRequest } from '../../../../../lib/auth';
+import prisma from '../../../../../lib/prisma';
 
 // PUT /api/admin/jobs/[id] - Cập nhật việc làm
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
@@ -11,25 +11,21 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
     const jobId = params.id;
     const body = await request.json();
-
-    // Build dynamic update query
-    const fields = [];
-    const values = [];
-    for (const key of Object.keys(body)) {
-      fields.push(`${key} = ?`);
-      values.push(
-        key === 'requirements' || key === 'benefits'
-          ? JSON.stringify(body[key])
-          : body[key]
-      );
+    // Chỉ update các trường hợp lệ
+    const allowedFields = [
+      'title', 'company', 'location', 'type', 'salary', 'description',
+      'requirements', 'benefits', 'deadline', 'status', 'postedDate'
+    ];
+    const data: any = {};
+    for (const key of allowedFields) {
+      if (body[key] !== undefined) {
+        data[key] = body[key];
+      }
     }
-    values.push(jobId);
-
-    await pool.query(
-      `UPDATE jobs SET ${fields.join(', ')} WHERE id = ?`,
-      values
-    );
-
+    await prisma.job.update({
+      where: { id: jobId },
+      data,
+    });
     return NextResponse.json({ success: true, message: 'Job updated successfully' });
   } catch (error) {
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
@@ -44,7 +40,10 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
     const jobId = params.id;
-    await pool.query('UPDATE jobs SET status = "deleted" WHERE id = ?', [jobId]);
+    await prisma.job.update({
+      where: { id: jobId },
+      data: { status: 'deleted' },
+    });
     return NextResponse.json({ success: true, message: 'Job deleted successfully' });
   } catch (error) {
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
