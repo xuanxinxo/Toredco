@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
+import Modal from '@/src/components/ui/Modal';
 
 interface Hiring {
   id: string;
@@ -24,7 +24,7 @@ const initialForm = {
 export default function AdminHiringPage() {
   const [hirings, setHirings] = useState<Hiring[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState(initialForm);
   const [submitting, setSubmitting] = useState(false);
 
@@ -52,7 +52,7 @@ export default function AdminHiringPage() {
     const data = await res.json();
     setSubmitting(false);
     if (data.success) {
-      setShowForm(false);
+      setShowModal(false);
       setForm(initialForm);
       // Reload list
       setLoading(true);
@@ -73,13 +73,14 @@ export default function AdminHiringPage() {
         <h1 className="text-2xl font-bold">Quản lý Hiring</h1>
         <button
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => setShowModal(true)}
         >
           + Đăng Hiring mới
         </button>
       </div>
-      {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Modal open={showModal} onClose={() => setShowModal(false)}>
+        <h2 className="text-lg font-bold mb-4">Đăng Hiring mới</h2>
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input name="title" value={form.title} onChange={handleChange} placeholder="Tiêu đề" className="border p-2 rounded" required />
           <input name="company" value={form.company} onChange={handleChange} placeholder="Công ty" className="border p-2 rounded" required />
           <input name="location" value={form.location} onChange={handleChange} placeholder="Địa điểm" className="border p-2 rounded" required />
@@ -90,12 +91,12 @@ export default function AdminHiringPage() {
             <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" disabled={submitting}>
               {submitting ? 'Đang đăng...' : 'Đăng Hiring'}
             </button>
-            <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={() => setShowForm(false)}>
+            <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={() => setShowModal(false)}>
               Hủy
             </button>
           </div>
         </form>
-      )}
+      </Modal>
       <div className="bg-white rounded-lg shadow overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">

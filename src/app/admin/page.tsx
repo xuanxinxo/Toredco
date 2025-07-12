@@ -10,6 +10,7 @@ interface DashboardStats {
   totalReviews: number;
   activeJobs: number;
   pendingJobs: number;
+  totalApplications: number;
 }
 
 export default function AdminDashboard() {
@@ -19,6 +20,7 @@ export default function AdminDashboard() {
     totalReviews: 0,
     activeJobs: 0,
     pendingJobs: 0,
+    totalApplications: 0,
   });
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -33,6 +35,7 @@ export default function AdminDashboard() {
           totalReviews: 30,
           activeJobs: 20,
           pendingJobs: 5,
+          totalApplications: 12,
         });
       } catch (error) {
         console.error("Error loading stats:", error);
@@ -104,7 +107,7 @@ export default function AdminDashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
               <div className="p-2 bg-blue-100 rounded-lg">
@@ -238,10 +241,36 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-indigo-100 rounded-lg">
+                <svg
+                  className="w-6 h-6 text-indigo-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Ứng viên</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {stats.totalApplications}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
           <Link
             href="/admin/jobs/create"
             className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
@@ -395,6 +424,35 @@ export default function AdminDashboard() {
               </div>
             </div>
           </Link>
+
+          <Link
+            href="/admin/applications"
+            className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center">
+              <div className="p-2 bg-indigo-100 rounded-lg">
+                <svg
+                  className="w-6 h-6 text-indigo-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Quản lý ứng viên
+                </h3>
+                <p className="text-sm text-gray-600">Xem và quản lý ứng viên</p>
+              </div>
+            </div>
+          </Link>
         </div>
 
         {/* Recent Activity */}
@@ -437,71 +495,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Danh sách ứng viên ứng tuyển */}
-        <ApplicationsTable />
-      </div>
-    </div>
-  );
-}
-
-function ApplicationsTable() {
-  const [applications, setApplications] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    async function fetchApplications() {
-      setLoading(true);
-      setError("");
-      try {
-        const res = await fetch("/api/applications", { cache: 'no-store' });
-        const json = await res.json();
-        if (json.success) {
-          setApplications(json.data);
-        } else {
-          setError("Không thể tải danh sách ứng viên");
-        }
-      } catch (e) {
-        setError("Có lỗi khi tải dữ liệu");
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchApplications();
-  }, []);
-
-  if (loading) return <div>Đang tải danh sách ứng viên...</div>;
-  if (error) return <div className="text-red-600">{error}</div>;
-  if (applications.length === 0) return <div>Chưa có ứng viên nào ứng tuyển.</div>;
-
-  return (
-    <div className="mt-12">
-      <h2 className="text-2xl font-bold mb-4">Danh sách ứng viên ứng tuyển</h2>
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border rounded-lg">
-          <thead>
-            <tr>
-              <th className="px-4 py-2 border">Tên</th>
-              <th className="px-4 py-2 border">Email</th>
-              <th className="px-4 py-2 border">Số điện thoại</th>
-              <th className="px-4 py-2 border">Tin nhắn/CV</th>
-              <th className="px-4 py-2 border">Vị trí ứng tuyển</th>
-              <th className="px-4 py-2 border">Ngày ứng tuyển</th>
-            </tr>
-          </thead>
-          <tbody>
-            {applications.map((app) => (
-              <tr key={app.id}>
-                <td className="px-4 py-2 border">{app.name}</td>
-                <td className="px-4 py-2 border">{app.email}</td>
-                <td className="px-4 py-2 border">{app.phone || '-'}</td>
-                <td className="px-4 py-2 border">{app.message || '-'}</td>
-                <td className="px-4 py-2 border">{app.hiring?.title || app.hiringId}</td>
-                <td className="px-4 py-2 border">{new Date(app.createdAt).toLocaleString('vi-VN')}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       </div>
     </div>
   );

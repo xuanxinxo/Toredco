@@ -136,7 +136,7 @@ export default function JobList({
 function Header() {
   return (
     <div className="flex justify-between items-center mb-6">
-      <h3 className="text-2xl font-bold">Việc làm mới nhất</h3>
+      <h3 className="text-2xl font-bold">Việc làm mới nhất nè các bạn ơi </h3>
       <Link
         href="/jobs"
         className="text-blue-600 hover:text-blue-800 font-medium"
