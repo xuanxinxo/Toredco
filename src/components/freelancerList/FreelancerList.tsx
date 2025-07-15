@@ -29,14 +29,14 @@ export default function JobList() {
         setLoading(true);
         setError('');
         
-        const response = await fetch('/api/jobs/new');
+        const response = await fetch('/api/jobs?limit=10');
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
-        if (Array.isArray(data)) {
-          setJobs(data);
+        if (data.jobs && Array.isArray(data.jobs)) {
+          setJobs(data.jobs);
         } else {
           setError('Không thể tải danh sách việc làm');
         }

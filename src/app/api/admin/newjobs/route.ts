@@ -4,9 +4,9 @@ import { prisma } from '@/src/lib/prisma';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, company, location, salary, tags, isRemote } = body;
+    const { title, company, location, salary, tags, isRemote, type, description, requirements, benefits, deadline } = body;
 
-    if (!title || !company || !location || typeof salary !== 'number') {
+    if (!title || !company || !location || !type || !description || !deadline) {
       return NextResponse.json({ success: false, message: 'Missing required fields' }, { status: 400 });
     }
 
@@ -15,9 +15,17 @@ export async function POST(request: NextRequest) {
         title,
         company,
         location,
-        salary,
+        salary: salary?.toString() || 'Thỏa thuận',
         tags: tags ?? [],
         isRemote: isRemote ?? false,
+        type,
+        description,
+        requirements: requirements ?? [],
+        benefits: benefits ?? [],
+        deadline: new Date(deadline),
+        status: 'pending', // Mặc định là pending, cần admin phê duyệt
+        postedDate: new Date(),
+        createdAt: new Date(),
       },
     });
 
@@ -49,9 +57,18 @@ async function createNewJob() {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get('status');
+    
+    const where: any = {};
+    if (status && status !== 'all') {
+      where.status = status;
+    }
+
     const jobs = await prisma.newJob.findMany({
+      where,
       orderBy: { createdAt: 'desc' }
     });
     return NextResponse.json({ success: true, data: jobs });

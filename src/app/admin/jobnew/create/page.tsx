@@ -11,9 +11,14 @@ export default function CreateJob() {
     title: '',
     company: '',
     location: '',
-    salary: '',       // sẽ ép về number trước khi gửi
-    tags: [''],       // nhập động
-    isRemote: false   // công tắc bật / tắt
+    type: 'Full-time',
+    salary: '',
+    description: '',
+    requirements: [''],
+    benefits: [''],
+    deadline: '',
+    tags: [''],
+    isRemote: false
   });
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState('');
@@ -27,7 +32,7 @@ export default function CreateJob() {
 
   /** -------------------- Helpers -------------------- */
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value, type, checked } = e.target as HTMLInputElement;
     setFormData(prev => ({
@@ -36,20 +41,20 @@ export default function CreateJob() {
     }));
   };
 
-  const handleTagChange = (idx: number, value: string) => {
+  const handleArrayChange = (field: 'tags' | 'requirements' | 'benefits', idx: number, value: string) => {
     setFormData(prev => ({
       ...prev,
-      tags: prev.tags.map((t, i) => (i === idx ? value : t))
+      [field]: (prev[field] as string[]).map((item, i) => (i === idx ? value : item))
     }));
   };
 
-  const addTag = () =>
-    setFormData(prev => ({ ...prev, tags: [...prev.tags, ''] }));
+  const addArrayItem = (field: 'tags' | 'requirements' | 'benefits') =>
+    setFormData(prev => ({ ...prev, [field]: [...(prev[field] as string[]), ''] }));
 
-  const removeTag = (idx: number) =>
+  const removeArrayItem = (field: 'tags' | 'requirements' | 'benefits', idx: number) =>
     setFormData(prev => ({
       ...prev,
-      tags: prev.tags.filter((_, i) => i !== idx)
+      [field]: (prev[field] as string[]).filter((_, i) => i !== idx)
     }));
 
   /** -------------------- Submit -------------------- */
@@ -68,8 +73,10 @@ export default function CreateJob() {
         },
         body: JSON.stringify({
           ...formData,
-          salary: Number(formData.salary) || 0,
-          tags: formData.tags.filter(t => t.trim() !== '')
+          salary: formData.salary || 'Thỏa thuận',
+          tags: formData.tags.filter(t => t.trim() !== ''),
+          requirements: formData.requirements.filter(r => r.trim() !== ''),
+          benefits: formData.benefits.filter(b => b.trim() !== '')
         })
       });
 
@@ -94,7 +101,15 @@ export default function CreateJob() {
           <h2 className="text-2xl font-bold mb-2">
             Tạo việc làm thành công!
           </h2>
-          <p className="text-gray-600">
+          <p className="text-gray-600 mb-4">
+            Việc làm đã được tạo với trạng thái "Chờ duyệt".
+          </p>
+          <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded">
+            <p className="text-sm">
+              <strong>Lưu ý:</strong> Việc làm cần được admin phê duyệt trước khi hiển thị trên website.
+            </p>
+          </div>
+          <p className="text-gray-600 mt-4">
             Đang chuyển hướng về trang quản lý...
           </p>
         </div>
@@ -116,6 +131,23 @@ export default function CreateJob() {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8">
+        {/* Thông báo về quy trình phê duyệt */}
+        <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded mb-6">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium">Quy trình phê duyệt</h3>
+              <div className="mt-2 text-sm">
+                <p>Việc làm mới sẽ được tạo với trạng thái "Chờ duyệt". Admin cần phê duyệt trước khi việc làm được hiển thị trên website.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <form
           onSubmit={handleSubmit}
           className="bg-white p-6 rounded-lg shadow space-y-6"
@@ -131,7 +163,8 @@ export default function CreateJob() {
             {['title', 'company', 'location'].map(field => (
               <div key={field}>
                 <label className="block text-sm font-medium mb-1 capitalize">
-                  {field} *
+                  {field === 'title' ? 'Tiêu đề việc làm' : 
+                   field === 'company' ? 'Công ty' : 'Địa điểm'} *
                 </label>
                 <input
                   required
@@ -146,13 +179,45 @@ export default function CreateJob() {
 
             <div>
               <label className="block text-sm font-medium mb-1">
-                Mức lương *
+                Loại việc làm *
+              </label>
+              <select
+                required
+                name="type"
+                value={formData.type}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="Full-time">Full-time</option>
+                <option value="Part-time">Part-time</option>
+                <option value="Freelance">Freelance</option>
+                <option value="Internship">Internship</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Mức lương
+              </label>
+              <input
+                type="text"
+                name="salary"
+                value={formData.salary}
+                onChange={handleInputChange}
+                placeholder="VD: 15-20 triệu VND"
+                className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Hạn nộp hồ sơ *
               </label>
               <input
                 required
-                type="number"
-                name="salary"
-                value={formData.salary}
+                type="date"
+                name="deadline"
+                value={formData.deadline}
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
               />
@@ -167,10 +232,91 @@ export default function CreateJob() {
                 onChange={handleInputChange}
                 className="h-5 w-5 text-blue-600"
               />
-              <label htmlFor="isRemote" className="text-sm font-medium">
-                Remote
-              </label>
             </div>
+          </div>
+
+          {/* ---- DESCRIPTION ---- */}
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Mô tả công việc *
+            </label>
+            <textarea
+              required
+              name="description"
+              value={formData.description}
+              onChange={handleInputChange}
+              rows={4}
+              className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+              placeholder="Mô tả chi tiết về công việc, trách nhiệm..."
+            />
+          </div>
+
+          {/* ---- REQUIREMENTS ---- */}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Yêu cầu công việc
+            </label>
+            {formData.requirements.map((req, idx) => (
+              <div key={idx} className="flex space-x-2 mb-2">
+                <input
+                  type="text"
+                  value={req}
+                  onChange={e => handleArrayChange('requirements', idx, e.target.value)}
+                  className="flex-1 px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+                  placeholder="VD: Kinh nghiệm 2+ năm với React"
+                />
+                {formData.requirements.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeArrayItem('requirements', idx)}
+                    className="px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                  >
+                    Xóa
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => addArrayItem('requirements')}
+              className="mt-2 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+            >
+              + Thêm yêu cầu
+            </button>
+          </div>
+
+          {/* ---- BENEFITS ---- */}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Quyền lợi
+            </label>
+            {formData.benefits.map((benefit, idx) => (
+              <div key={idx} className="flex space-x-2 mb-2">
+                <input
+                  type="text"
+                  value={benefit}
+                  onChange={e => handleArrayChange('benefits', idx, e.target.value)}
+                  className="flex-1 px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+                  placeholder="VD: Bảo hiểm sức khỏe, thưởng dự án"
+                />
+                {formData.benefits.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeArrayItem('benefits', idx)}
+                    className="px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                  >
+                    Xóa
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => addArrayItem('benefits')}
+              className="mt-2 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+            >
+              + Thêm quyền lợi
+            </button>
           </div>
 
           {/* ---- TAGS ---- */}
@@ -183,14 +329,14 @@ export default function CreateJob() {
                 <input
                   type="text"
                   value={tag}
-                  onChange={e => handleTagChange(idx, e.target.value)}
+                  onChange={e => handleArrayChange('tags', idx, e.target.value)}
                   className="flex-1 px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
                   placeholder="VD: React, NodeJS"
                 />
                 {formData.tags.length > 1 && (
                   <button
                     type="button"
-                    onClick={() => removeTag(idx)}
+                    onClick={() => removeArrayItem('tags', idx)}
                     className="px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
                   >
                     Xóa
@@ -200,7 +346,7 @@ export default function CreateJob() {
             ))}
             <button
               type="button"
-              onClick={addTag}
+              onClick={() => addArrayItem('tags')}
               className="mt-2 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
             >
               + Thêm tag

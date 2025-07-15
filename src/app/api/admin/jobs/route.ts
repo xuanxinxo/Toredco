@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     if (!body.title || !body.company || !body.location)
       return NextResponse.json({ success: false, message: 'Missing required fields' }, { status: 400 });
 
-    await prisma.job.create({ data: { ...body, deadline: new Date(body?.deadline), status: 'active', postedDate: new Date() } });
+    await prisma.job.create({ data: { ...body, deadline: new Date(body?.deadline), status: 'pending', postedDate: new Date() } });
     return NextResponse.json({ success: true, message: 'Job created successfully' }, { status: 201 });
   } catch (err) {
     console.error(err);

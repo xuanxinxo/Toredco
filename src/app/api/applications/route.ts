@@ -16,6 +16,7 @@ export async function POST(req: Request) {
         phone,
         message,
         cv,
+        createdAt: new Date(),
       },
     });
     return NextResponse.json({ success: true, data: application });
@@ -28,9 +29,7 @@ export async function GET() {
   try {
     const applications = await prisma.application.findMany({
       orderBy: { createdAt: 'desc' },
-      include: { 
-        hiring: true,
-      },
+      // include: { hiring: true }, // Đã xóa dòng này để tránh lỗi
     });
 
     // Fetch job and newJob data for each application
@@ -47,14 +46,17 @@ export async function GET() {
               select: { id: true, title: true, company: true }
             });
           } catch (e) {
-            // If not found in Job, try NewJob table
+            job = null;
+          }
+          // Nếu không tìm thấy ở Job, thử ở NewJob
+          if (!job) {
             try {
               newJob = await prisma.newJob.findUnique({
                 where: { id: app.jobId },
                 select: { id: true, title: true, company: true }
               });
             } catch (e2) {
-              console.error("Error fetching job data:", e2);
+              newJob = null;
             }
           }
         }

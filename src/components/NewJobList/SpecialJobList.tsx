@@ -29,11 +29,11 @@ export default function SpecialJobList() {
     try {
       setLoading(true);
       setError('');
-      // Đổi endpoint này thành API bạn muốn lấy 4 job đặc biệt
-      const res = await fetch('/api/admin/newjobs/custom');
+      // Lấy 4 job đặc biệt đã được phê duyệt
+      const res = await fetch('/api/newjobs?limit=4');
       const json = await res.json();
-      if (Array.isArray(json.data)) {
-        setJobs(json.data);
+      if (json.jobs && Array.isArray(json.jobs)) {
+        setJobs(json.jobs);
       } else {
         throw new Error('Invalid response format');
       }

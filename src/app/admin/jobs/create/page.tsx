@@ -102,7 +102,12 @@ export default function CreateJob() {
         <div className="bg-white rounded-lg shadow p-8 text-center">
           <div className="text-green-500 text-6xl mb-4">✓</div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Tạo việc làm thành công!</h2>
-          <p className="text-gray-600 mb-4">Việc làm đã được tạo và sẽ hiển thị trên trang chủ.</p>
+          <p className="text-gray-600 mb-4">Việc làm đã được tạo với trạng thái "Chờ duyệt".</p>
+          <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded mb-4">
+            <p className="text-sm">
+              <strong>Lưu ý:</strong> Việc làm cần được admin phê duyệt trước khi hiển thị trên website.
+            </p>
+          </div>
           <p className="text-sm text-gray-500">Đang chuyển hướng về trang quản lý...</p>
         </div>
       </div>
@@ -129,6 +134,23 @@ export default function CreateJob() {
       </header>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Thông báo về quy trình phê duyệt */}
+        <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded mb-6">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium">Quy trình phê duyệt</h3>
+              <div className="mt-2 text-sm">
+                <p>Việc làm mới sẽ được tạo với trạng thái "Chờ duyệt". Admin cần phê duyệt trước khi việc làm được hiển thị trên website.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="bg-white rounded-lg shadow p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (

@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
         requirements: requirements ?? [],
         benefits: benefits ?? [],
         deadline: new Date(deadline),
-        status: 'active',
+        status: 'pending', // Mặc định là pending, cần admin phê duyệt
         postedDate: new Date(),
       },
     });

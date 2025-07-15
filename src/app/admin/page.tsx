@@ -107,12 +107,12 @@ export default function AdminDashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+          <div className="bg-white rounded-lg shadow p-4">
             <div className="flex items-center">
               <div className="p-2 bg-blue-100 rounded-lg">
                 <svg
-                  className="w-6 h-6 text-blue-600"
+                  className="w-5 h-5 text-blue-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -125,22 +125,22 @@ export default function AdminDashboard() {
                   />
                 </svg>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">
+              <div className="ml-3">
+                <p className="text-xs font-medium text-gray-600">
                   Tổng việc làm
                 </p>
-                <p className="text-2xl font-semibold text-gray-900">
+                <p className="text-xl font-semibold text-gray-900">
                   {stats.totalJobs}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow p-4">
             <div className="flex items-center">
               <div className="p-2 bg-green-100 rounded-lg">
                 <svg
-                  className="w-6 h-6 text-green-600"
+                  className="w-5 h-5 text-green-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -153,20 +153,20 @@ export default function AdminDashboard() {
                   />
                 </svg>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Freelancers</p>
-                <p className="text-2xl font-semibold text-gray-900">
+              <div className="ml-3">
+                <p className="text-xs font-medium text-gray-600">Freelancers</p>
+                <p className="text-xl font-semibold text-gray-900">
                   {stats.totalFreelancers}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow p-4">
             <div className="flex items-center">
               <div className="p-2 bg-yellow-100 rounded-lg">
                 <svg
-                  className="w-6 h-6 text-yellow-600"
+                  className="w-5 h-5 text-yellow-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -179,20 +179,20 @@ export default function AdminDashboard() {
                   />
                 </svg>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Đánh giá</p>
-                <p className="text-2xl font-semibold text-gray-900">
+              <div className="ml-3">
+                <p className="text-xs font-medium text-gray-600">Đánh giá</p>
+                <p className="text-xl font-semibold text-gray-900">
                   {stats.totalReviews}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow p-4">
             <div className="flex items-center">
               <div className="p-2 bg-green-100 rounded-lg">
                 <svg
-                  className="w-6 h-6 text-green-600"
+                  className="w-5 h-5 text-green-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -205,22 +205,22 @@ export default function AdminDashboard() {
                   />
                 </svg>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">
+              <div className="ml-3">
+                <p className="text-xs font-medium text-gray-600">
                   Việc làm đang hoạt động
                 </p>
-                <p className="text-2xl font-semibold text-gray-900">
+                <p className="text-xl font-semibold text-gray-900">
                   {stats.activeJobs}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow p-4">
             <div className="flex items-center">
               <div className="p-2 bg-orange-100 rounded-lg">
                 <svg
-                  className="w-6 h-6 text-orange-600"
+                  className="w-5 h-5 text-orange-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -233,20 +233,20 @@ export default function AdminDashboard() {
                   />
                 </svg>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Chờ duyệt</p>
-                <p className="text-2xl font-semibold text-gray-900">
+              <div className="ml-3">
+                <p className="text-xs font-medium text-gray-600">Chờ duyệt</p>
+                <p className="text-xl font-semibold text-gray-900">
                   {stats.pendingJobs}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow p-4">
             <div className="flex items-center">
               <div className="p-2 bg-indigo-100 rounded-lg">
                 <svg
-                  className="w-6 h-6 text-indigo-600"
+                  className="w-5 h-5 text-indigo-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -259,9 +259,9 @@ export default function AdminDashboard() {
                   />
                 </svg>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Ứng viên</p>
-                <p className="text-2xl font-semibold text-gray-900">
+              <div className="ml-3">
+                <p className="text-xs font-medium text-gray-600">Ứng viên</p>
+                <p className="text-xl font-semibold text-gray-900">
                   {stats.totalApplications}
                 </p>
               </div>
@@ -270,15 +270,15 @@ export default function AdminDashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
           <Link
             href="/admin/jobs/create"
-            className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
+            className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow"
           >
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
+            <div className="flex flex-col items-center text-center">
+              <div className="p-2 bg-blue-100 rounded-lg mb-2">
                 <svg
-                  className="w-6 h-6 text-blue-600"
+                  className="w-5 h-5 text-blue-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -291,22 +291,20 @@ export default function AdminDashboard() {
                   />
                 </svg>
               </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Đăng việc làmssssssssssssssss
-                </h3> 
-                <p className="text-sm text-gray-600">Tạo việc làm mới</p>
-              </div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                Đăng việc làm
+              </h3> 
+              <p className="text-xs text-gray-600">Tạo việc làm mới</p>
             </div>
           </Link>
            <Link
             href="/admin/jobnew/create"
-            className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
+            className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow"
           >
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
+            <div className="flex flex-col items-center text-center">
+              <div className="p-2 bg-green-100 rounded-lg mb-2">
                 <svg
-                  className="w-6 h-6 text-blue-600"
+                  className="w-5 h-5 text-green-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -319,24 +317,22 @@ export default function AdminDashboard() {
                   />
                 </svg>
               </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Đăng việc làm TopNew
-                </h3>
-                <p className="text-sm text-gray-600">Tạo việc làm mới</p>
-              </div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                Đăng việc làm TopNew
+              </h3>
+              <p className="text-xs text-gray-600">Tạo việc làm mới</p>
             </div>
           </Link>
 
 
           <Link
             href="/admin/jobs"
-            className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
+            className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow"
           >
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
+            <div className="flex flex-col items-center text-center">
+              <div className="p-2 bg-blue-100 rounded-lg mb-2">
                 <svg
-                  className="w-6 h-6 text-green-600"
+                  className="w-5 h-5 text-blue-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -349,23 +345,21 @@ export default function AdminDashboard() {
                   />
                 </svg>
               </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Quản lý việc làm
-                </h3>
-                <p className="text-sm text-gray-600">Xem và chỉnh sửa</p>
-              </div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                Quản lý việc làm
+              </h3>
+              <p className="text-xs text-gray-600">Xem và chỉnh sửa</p>
             </div>
           </Link>
 
           <Link
             href="/admin/freelancers"
-            className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
+            className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow"
           >
-            <div className="flex items-center">
-              <div className="p-2 bg-purple-100 rounded-lg">
+            <div className="flex flex-col items-center text-center">
+              <div className="p-2 bg-purple-100 rounded-lg mb-2">
                 <svg
-                  className="w-6 h-6 text-purple-600"
+                  className="w-5 h-5 text-purple-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -378,32 +372,34 @@ export default function AdminDashboard() {
                   />
                 </svg>
               </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Quản lý freelancers
-                </h3>
-                <p className="text-sm text-gray-600">Xem danh sách</p>
-              </div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                Quản lý freelancers
+              </h3>
+              <p className="text-xs text-gray-600">Xem danh sách</p>
             </div>
           </Link>
 
           <Link
             href="/admin/hirings"
-            className="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:bg-blue-50 transition"
+            className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow"
           >
-            <span className="text-3xl mb-2">📋</span>
-            <span className="font-semibold text-lg">Quản lý Hiring</span>
-            <span className="text-gray-500 text-sm mt-1">Xem và chỉnh sửa các Hiring</span>
+            <div className="flex flex-col items-center text-center">
+              <div className="p-2 bg-orange-100 rounded-lg mb-2">
+                <span className="text-2xl">📋</span>
+              </div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-1">Quản lý Hiring</h3>
+              <p className="text-xs text-gray-600">Xem và chỉnh sửa</p>
+            </div>
           </Link>
 
           <Link
             href="/admin/reviews"
-            className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
+            className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow"
           >
-            <div className="flex items-center">
-              <div className="p-2 bg-yellow-100 rounded-lg">
+            <div className="flex flex-col items-center text-center">
+              <div className="p-2 bg-yellow-100 rounded-lg mb-2">
                 <svg
-                  className="w-6 h-6 text-yellow-600"
+                  className="w-5 h-5 text-yellow-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -416,23 +412,21 @@ export default function AdminDashboard() {
                   />
                 </svg>
               </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Quản lý đánh giá
-                </h3>
-                <p className="text-sm text-gray-600">Duyệt và phản hồi</p>
-              </div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                Quản lý đánh giá
+              </h3>
+              <p className="text-xs text-gray-600">Duyệt và phản hồi</p>
             </div>
           </Link>
 
           <Link
             href="/admin/applications"
-            className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
+            className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow"
           >
-            <div className="flex items-center">
-              <div className="p-2 bg-indigo-100 rounded-lg">
+            <div className="flex flex-col items-center text-center">
+              <div className="p-2 bg-indigo-100 rounded-lg mb-2">
                 <svg
-                  className="w-6 h-6 text-indigo-600"
+                  className="w-5 h-5 text-indigo-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -445,12 +439,10 @@ export default function AdminDashboard() {
                   />
                 </svg>
               </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Quản lý ứng viên
-                </h3>
-                <p className="text-sm text-gray-600">Xem và quản lý ứng viên</p>
-              </div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                Quản lý ứng viên
+              </h3>
+              <p className="text-xs text-gray-600">Xem và quản lý ứng viên</p>
             </div>
           </Link>
         </div>

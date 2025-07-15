@@ -2,7 +2,6 @@
 
 import { Job } from "@/src/app/types/job";
 import JobCard from "@/src/components/JobList/JobCard";
-import { mockJobs } from "@/src/data";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
@@ -46,22 +45,22 @@ export default function JobList({
       setLoading(true);
       setError("");
       
-      const res = await fetch('/api/jobs/new');
+      const res = await fetch('/api/jobs?limit=5');
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
       
       const json = await res.json();
-      if (Array.isArray(json.data)) {
-        setJobs(json.data.slice(0, limit));
+      if (json.jobs && Array.isArray(json.jobs)) {
+        setJobs(json.jobs.slice(0, limit));
       } else {
         throw new Error('Invalid response format');
       }
     } catch (err) {
       console.error("Error loading jobs:", err);
       setError("Có lỗi xảy ra khi tải dữ liệu");
-      // Fallback to mock data
-      setJobs(mockJobs.slice(0, limit));
+      // Không sử dụng mock data để đảm bảo chỉ hiển thị jobs đã phê duyệt
+      setJobs([]);
     } finally {
       setLoading(false);
     }

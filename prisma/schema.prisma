@@ -7,70 +7,67 @@ datasource db {
   url      = env("MONGODB_URI")
 }
 
-model User {
+model Application {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  email     String   @unique
-  password  String
+  createdAt DateTime @db.Date
+  cv        String?
+  email     String
+  hiringId  String?
+  jobId     String?
+  message   String?
   name      String
-  createdAt DateTime @default(now())
+  phone     String
+}
+
+model Hiring {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  benefits     String[]
+  company      String
+  deadline     DateTime @db.Date
+  description  String
+  location     String
+  postedDate   DateTime @db.Date
+  requirements String[]
+  salary       String
+  title        String
+  type         String
 }
 
 model Job {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  title        String
-  company      String
-  location     String
-  type         String
-  salary       String
-  description  String
-  requirements String[]
   benefits     String[]
-  deadline     DateTime
-  status       String   @default("active")
-  postedDate   DateTime @default(now())
+  company      String
+  deadline     DateTime @db.Date
+  description  String
+  location     String
+  postedDate   DateTime @db.Date
+  requirements String[]
+  salary       String
+  status       String
+  title        String
+  type         String
 }
 
 model NewJob {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  title        String
-  company      String
-  location     String
-  type         String?
-  salary       String
-  tags         String[]
-  isRemote     Boolean  @default(false)
-  description  String?
-  requirements String[]
   benefits     String[]
-  deadline     DateTime?
-  status       String   @default("active")
-  postedDate   DateTime @default(now())
-  createdAt    DateTime @default(now())
-}
-model Application {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  jobId     String?  // id của Job hoặc NewJob (nếu ứng tuyển job)
-  hiringId  String?  // id của Hiring (nếu ứng tuyển hiring)
-  name      String
-  email     String
-  phone     String?
-  message   String?
-  cv        String?
-  createdAt DateTime @default(now())
-  hiring    Hiring?  @relation(fields: [hiringId], references: [id])
+  company      String
+  createdAt    DateTime @db.Date
+  deadline     DateTime @db.Date
+  description  String
+  isRemote     Boolean
+  location     String
+  postedDate   DateTime @db.Date
+  requirements String[]
+  salary       String
+  status       String
+  tags         String[]
+  title        String
+  type         String
 }
 
-model Hiring {
-  id          String        @id @default(auto()) @map("_id") @db.ObjectId
-  title       String
-  company     String
-  location    String
-  type        String
-  salary      String
-  description String
-  requirements String[]
-  benefits    String[]
-  postedDate  DateTime     @default(now())
-  deadline    DateTime
-  applications Application[]
+model User {
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  /// Field referred in an index, but found no data to define the type.
+  email Json?  @unique
 }
