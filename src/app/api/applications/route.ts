@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
+import { getUserFromRequest } from "@/src/lib/auth";
 
-export async function POST(req: Request) {
+export async function POST(req) {
+  // Kiểm tra đăng nhập
+  const user = getUserFromRequest(req);
+  if (!user) {
+    return NextResponse.json({ success: false, message: 'Bạn cần đăng nhập để ứng tuyển' }, { status: 401 });
+  }
   try {
     const { jobId, hiringId, name, email, phone, message, cv } = await req.json();
     if (!jobId && !hiringId) {

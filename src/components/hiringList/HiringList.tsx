@@ -140,7 +140,7 @@ export function HiringList() {
         
         <div className="text-center mt-12">
           <Link 
-            href="/hiring" 
+            href="/hirings" 
             className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-full font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300"
           >
             Xem tất cả cơ hội việc làm

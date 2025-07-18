@@ -68,6 +68,16 @@ export default function SpecialJobList() {
     }
   };
 
+  const handleApplyClick = (jobId: string) => {
+    const token = typeof window !== 'undefined' ? (localStorage.getItem('token') || (document.cookie.match(/token=([^;]+)/)?.[1] ?? '')) : '';
+    if (!token) {
+      alert('Bạn cần đăng nhập để ứng tuyển!');
+      window.location.href = '/login';
+      return;
+    }
+    setShowModal(jobId);
+  };
+
   if (loading) return <div>Đang tải...</div>;
   if (error) return <div>{error}</div>;
 
@@ -93,7 +103,7 @@ export default function SpecialJobList() {
           )}
           <button
             className="mt-3 bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800"
-            onClick={() => setShowModal(job._id)}
+            onClick={() => handleApplyClick(job._id)}
           >
             Ứng tuyển
           </button>

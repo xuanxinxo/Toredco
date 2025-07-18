@@ -50,6 +50,16 @@ export default function JobCard({ job }: { job: NewJob }) {
     }
   };
 
+  const handleApplyClick = () => {
+    const token = typeof window !== 'undefined' ? (localStorage.getItem('token') || (document.cookie.match(/token=([^;]+)/)?.[1] ?? '')) : '';
+    if (!token) {
+      alert('Bạn cần đăng nhập để ứng tuyển!');
+      window.location.href = '/login';
+      return;
+    }
+    setShowModal(true);
+  };
+
   return (
     <div
       key={job.id}
@@ -96,7 +106,7 @@ export default function JobCard({ job }: { job: NewJob }) {
       <div className="flex flex-row gap-2 items-stretch mt-4">
         <button
           className="flex-1 text-sm bg-green-700 text-white px-4 py-2 min-w-[100px] text-center rounded hover:bg-green-700 font-medium transition-colors whitespace-nowrap overflow-hidden text-ellipsis shadow-md"
-          onClick={() => setShowModal(true)}
+          onClick={handleApplyClick}
         >
           Ứng tuyển
         </button>

@@ -116,12 +116,12 @@ export default function JobList({
   /* ───────────── UI chính ───────────── */
   return (
     <section className="h-full">
-      {limit === 3 && <Header />}
+      {limit === 4 && <Header />}
 
       <div ref={sliderRef} className={containerClassName}>
         {jobs.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            Chưa có việc làm nào được đăngssssssssssssssss
+            Chưa có việc làm nào được đăng
           </div>
         ) : (
           jobs.map((job) => <JobCard key={job.id} job={job} />)
@@ -137,10 +137,10 @@ function Header() {
     <div className="flex justify-between items-center mb-6">
       <h3 className="text-2xl font-bold">Việc làm mới nhất nè các bạn ơi </h3>
       <Link
-        href="/jobs"
+        href="/jobnew"
         className="text-blue-600 hover:text-blue-800 font-medium"
       >
-        Xem tất cả →
+        Xem tất cảs →
       </Link>
     </div>
   );
