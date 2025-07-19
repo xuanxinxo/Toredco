@@ -134,13 +134,8 @@ export default function RegisterPage() {
 
         <div className="w-full md:w-1/2 p-4 md:p-8 flex flex-col items-center justify-center text-center bg-gradient-to-br from-blue-700 to-indigo-900 rounded-lg md:rounded-l-none md:ml-4 mt-8 md:mt-0">
           <h2 className="text-4xl italic font-semibold leading-relaxed">
-            Chào mừng bạn đã
-            <br />
-            đến với Toredco nơi
-            <br />
-            không làm bạn thất
-            <br />
-            vọng
+             Chào mừng bạn đã <br /> đến với ViecLab <br /> Nơi tạo nền tảng kết nối
+            <br /> minh bạch
           </h2>
         </div>
       </form>
