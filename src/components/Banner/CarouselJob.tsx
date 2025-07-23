@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 interface Job {
@@ -14,13 +13,6 @@ interface Job {
   description: string;
   postedDate: string;
 }
-
-const bgImages = [
-  "/img/slide-1.png",
-  "/img/slide-3.png",
-  "/img/slide-2.png",
-  "/img/slide-4.png",
-];
 
 function ApplyModal({ open, onClose, job }: { open: boolean; onClose: () => void; job: Job | null }) {
   const [form, setForm] = useState({ name: '', email: '', phone: '', cv: '', message: '' });
@@ -59,6 +51,7 @@ function ApplyModal({ open, onClose, job }: { open: boolean; onClose: () => void
   };
 
   if (!open || !job) return null;
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md relative">
@@ -87,19 +80,21 @@ function ApplyModal({ open, onClose, job }: { open: boolean; onClose: () => void
 
 export default function CarouselJob() {
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [current, setCurrent] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(0); // 0 or 1
   const [showApplyModal, setShowApplyModal] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const router = useRouter();
 
-  // Fetch jobs from API
+  const jobsPerPage = 12;
+
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const response = await fetch('/api/jobs?limit=4&status=active');
+        const response = await fetch('/api/jobs?limit=24&status=active');
         const data = await response.json();
-        if (data.jobs && data.jobs.length > 0) {
-          setJobs(data.jobs);
+        if (data.jobs) {
+          setJobs(data.jobs.slice(0, 24));
         }
       } catch (error) {
         console.error('Error fetching jobs:', error);
@@ -111,149 +106,86 @@ export default function CarouselJob() {
     fetchJobs();
   }, []);
 
-  const nextSlide = () => {
-    if (jobs.length > 0) {
-      setCurrent((prev) => (prev === jobs.length - 1 ? 0 : prev + 1));
-    }
-  };
-
   useEffect(() => {
-    if (jobs.length > 0) {
-      const interval = setInterval(() => {
-        nextSlide();
-      }, 3000);
+    const timer = setInterval(() => {
+      setCurrentPage((prev) => (prev + 1) % 2); // tự động chuyển 2 trang
+    }, 5000); // 5 giây chuyển slide
 
-      return () => clearInterval(interval);
-    }
-  }, [jobs]);
+    return () => clearInterval(timer);
+  }, []);
 
-  const handleApplyJob = (jobId: string) => {
-    // Kiểm tra token đăng nhập (cookie hoặc localStorage)
-    const token = typeof window !== 'undefined' ? (localStorage.getItem('token') || (document.cookie.match(/token=([^;]+)/)?.[1] ?? '')) : '';
+  const handleApplyJob = (job: Job) => {
+    const token = typeof window !== 'undefined'
+      ? localStorage.getItem('token') || (document.cookie.match(/token=([^;]+)/)?.[1] ?? '')
+      : '';
     if (!token) {
       alert('Bạn cần đăng nhập để ứng tuyển!');
       router.push('/login');
       return;
     }
+    setSelectedJob(job);
     setShowApplyModal(true);
   };
 
   if (loading) {
     return (
-      <div className="relative w-full mt-14">
-        <div className="w-full aspect-[16/9] bg-gray-200 rounded-lg animate-pulse flex items-center justify-center">
-          <div className="text-gray-500">Đang tải việc làm...</div>
-        </div>
+      <div className="w-full mt-14">
+        <div className="text-center py-10 text-gray-500 animate-pulse">Đang tải việc làm...</div>
       </div>
     );
   }
 
   if (jobs.length === 0) {
     return (
-      <div className="relative w-full mt-14">
-        <div className="w-full aspect-[16/9] bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg flex items-center justify-center">
-          <div className="text-center">
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">Chưa có việc làm</h3>
-            <p className="text-gray-500">Hãy quay lại sau để xem các cơ hội mới</p>
-          </div>
-        </div>
+      <div className="w-full mt-14">
+        <div className="text-center py-10 text-gray-500">Hiện chưa có việc làm nào phù hợp.</div>
       </div>
     );
   }
 
-  return (
-    <div className="relative w-full mt-14">
-      <section className="w-full">
-        <div className="relative w-full aspect-[16/9] overflow-hidden rounded-lg">
-          {jobs.map((job, index) => {
-            const bgSrc = bgImages[index % bgImages.length];
-            return (
-              <div
-                key={job.id}
-                className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
-                  index === current ? "opacity-100 z-10" : "opacity-0 z-0"
-                }`}
-              >
-                {/* Hình nền mờ */}
-                <Image
-                  src={bgSrc}
-                  alt="background"
-                  fill
-                  className="object-cover opacity-40"
-                  priority={index === 0}
-                />
-                {/* Lớp phủ gradient tối */}
-                <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent z-10"></div>
-                {/* Nội dung việc làm */}
-                <div className="absolute inset-0 flex items-center justify-start z-20 p-8 md:p-12">
-                  <div className="max-w-2xl text-white">
-                    <div className="mb-4">
-                      <span className="inline-block bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium mb-3">
-                        {job.type}
-                      </span>
-                    </div>
-                    <h2 className="text-3xl md:text-4xl font-bold mb-4 leading-tight">
-                      {job.title}
-                    </h2>
-                    <div className="flex items-center mb-4 text-blue-200">
-                      <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm3 2a1 1 0 000 2h6a1 1 0 100-2H7zm0 4a1 1 0 000 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
-                      </svg>
-                      <span className="font-semibold">{job.company}</span>
-                    </div>
-                    <div className="flex items-center mb-4 text-blue-200">
-                      <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                      </svg>
-                      <span>{job.location}</span>
-                    </div>
-                    <div className="flex items-center mb-6 text-yellow-300">
-                      <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
-                      </svg>
-                      <span className="font-semibold">{job.salary}</span>
-                    </div>
-                    <div className="flex space-x-4">
-                      <button 
-                        onClick={() => router.push(`/jobs/${job.id}`)}
-                        className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors duration-300"
-                      >
-                        Xem chi tiết
-                      </button>
-                      <button 
-                        onClick={() => handleApplyJob(job.id)}
-                        className="bg-green-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-600 transition-colors duration-300 flex items-center"
-                      >
-                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
-                        Ứng tuyển ngay
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
+  const currentJobs = jobs.slice(currentPage * jobsPerPage, (currentPage + 1) * jobsPerPage);
 
-      {jobs.length > 1 && (
-        <div className="absolute bottom-5 left-1/2 z-30 flex -translate-x-1/2 space-x-3">
-          {jobs.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrent(index)}
-              className={`w-3 h-3 rounded-full transition-colors duration-300 ${
-                current === index ? "bg-white" : "bg-white/50"
-              }`}
-            />
-          ))}
-        </div>
-      )}
-      {/* Modal ứng tuyển */}
-      <ApplyModal open={showApplyModal} onClose={() => setShowApplyModal(false)} job={jobs[current]} />
+  return (
+    <div className="w-full relative">
+      <h2 className="text-2xl font-bold text-blue-700 mb-6">Việc làm nổi bật</h2>
+
+      {/* Grid job cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 transition-opacity duration-500">
+        {currentJobs.map((job) => (
+          <div key={job.id} className="bg-white border rounded-xl p-4 shadow-md hover:shadow-lg transition relative">
+            <div className="flex flex-col gap-1">
+              <h3 className="text-base font-semibold text-red-600 line-clamp-2">{job.title}</h3>
+              <p className="text-gray-700 text-sm">{job.company}</p>
+              <p className="text-blue-600 text-sm font-medium">{job.salary}</p>
+              <p className="text-xs text-gray-500">{job.location}</p>
+            </div>
+            <button className="absolute top-3 right-3 text-gray-400 hover:text-blue-600 text-lg">♥</button>
+            <div className="flex justify-between items-center mt-4 text-sm">
+              <span className="text-gray-500">{new Date(job.postedDate).toLocaleDateString("vi-VN")}</span>
+              <button
+                onClick={() => handleApplyJob(job)}
+                className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600"
+              >
+                Ứng tuyển
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Slide indicators */}
+      <div className="flex justify-center mt-6 space-x-2">
+        {[0, 1].map((i) => (
+          <button
+            key={i}
+            className={`w-3 h-3 rounded-full ${i === currentPage ? 'bg-blue-600' : 'bg-gray-300'}`}
+            onClick={() => setCurrentPage(i)}
+          />
+        ))}
+      </div>
+
+      {/* Apply modal */}
+      <ApplyModal open={showApplyModal} onClose={() => setShowApplyModal(false)} job={selectedJob} />
     </div>
   );
 }

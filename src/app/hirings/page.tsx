@@ -87,7 +87,7 @@ export default function HiringsJobNewList() {
       <header className="bg-white shadow-sm border-b mb-8">
         <div className="max-w-7xl mx-auto px-4 flex items-center h-16">
           <a href="/" className="mr-4 px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 font-medium transition-colors">← Quay lại</a>
-          <h1 className="text-2xl font-bold text-blue-700">Danh sách việc làm mới (JobNew)</h1>
+          <h1 className="text-2xl font-bold text-blue-700">Danh sách việc làm mới (Good)</h1>
         </div>
       </header>
       <main className="max-w-6xl mx-auto px-4">
