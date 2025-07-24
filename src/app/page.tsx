@@ -12,6 +12,7 @@ import CarouselJob from "@/src/components/Banner/CarouselJob";
 import Marquee from '@/src/components/Banner/Marquee';
 import SpecialJobList from '../components/NewJobList/SpecialJobList';
 import NewJobList from '../components/NewJobList/JobList';
+import NewsSection from '../components/NewsSection';
 export default function Home() {
   return (
     <>
@@ -35,6 +36,7 @@ export default function Home() {
         <HiringList />
       </div>
       <div className="space-y-8">
+        <NewsSection />
         <ReviewRankingTable />
       </div>
 

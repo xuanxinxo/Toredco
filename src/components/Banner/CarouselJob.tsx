@@ -55,7 +55,9 @@ function ApplyModal({ open, onClose, job }: { open: boolean; onClose: () => void
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md relative">
-        <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-700" onClick={onClose}>&times;</button>
+        <button className="absolute top-2 right-2 text-gray-400 hover:text-gray-700" onClick={onClose}>
+          &times;
+        </button>
         <h2 className="text-lg font-bold mb-4 text-blue-700">Ứng tuyển: {job.title}</h2>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <input name="name" value={form.name} onChange={handleChange} placeholder="Họ tên" className="border p-2 rounded" required />
@@ -81,12 +83,13 @@ function ApplyModal({ open, onClose, job }: { open: boolean; onClose: () => void
 export default function CarouselJob() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(0); // 0 or 1
+  const [currentPage, setCurrentPage] = useState(0);
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const router = useRouter();
 
   const jobsPerPage = 12;
+  const bgImages = ['/img/slide-1.png', '/img/slide-2.png'];
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -108,8 +111,8 @@ export default function CarouselJob() {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentPage((prev) => (prev + 1) % 2); // tự động chuyển 2 trang
-    }, 5000); // 5 giây chuyển slide
+      setCurrentPage((prev) => (prev + 1) % 2);
+    }, 5000);
 
     return () => clearInterval(timer);
   }, []);
@@ -146,46 +149,56 @@ export default function CarouselJob() {
   const currentJobs = jobs.slice(currentPage * jobsPerPage, (currentPage + 1) * jobsPerPage);
 
   return (
-    <div className="w-full relative">
-      <h2 className="text-2xl font-bold text-blue-700 mb-6">Việc làm nổi bật</h2>
+    <div className="w-full bg-gray-50 relative overflow-hidden">
+      {/* Nền hình ảnh mờ */}
+      <div
+        className="absolute inset-0 bg-cover bg-center transition-opacity duration-500 opacity-20 blur-sm"
+        style={{ backgroundImage: `url(${bgImages[currentPage]})` }}
+      />
 
-      {/* Grid job cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 transition-opacity duration-500">
-        {currentJobs.map((job) => (
-          <div key={job.id} className="bg-white border rounded-xl p-4 shadow-md hover:shadow-lg transition relative">
-            <div className="flex flex-col gap-1">
-              <h3 className="text-base font-semibold text-red-600 line-clamp-2">{job.title}</h3>
-              <p className="text-gray-700 text-sm">{job.company}</p>
-              <p className="text-blue-600 text-sm font-medium">{job.salary}</p>
-              <p className="text-xs text-gray-500">{job.location}</p>
-            </div>
-            <button className="absolute top-3 right-3 text-gray-400 hover:text-blue-600 text-lg">♥</button>
-            <div className="flex justify-between items-center mt-4 text-sm">
-              <span className="text-gray-500">{new Date(job.postedDate).toLocaleDateString("vi-VN")}</span>
-              <button
-                onClick={() => handleApplyJob(job)}
-                className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600"
-              >
-                Ứng tuyển
-              </button>
-            </div>
+      {/* Nội dung chính */}
+      <div className="relative z-10">
+        <div className="max-w-7xl mx-auto px-4 py-2">
+          <h2 className="text-2xl font-bold text-blue-700 mb-6">Việc làm nổi bật</h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 transition-opacity duration-500">
+            {currentJobs.map((job) => (
+              <div key={job.id} className="bg-white border rounded-xl p-4 shadow-md hover:shadow-lg transition relative">
+                <div className="flex flex-col gap-1">
+                  <h3 className="text-base font-semibold text-red-600 line-clamp-2">{job.title}</h3>
+                  <p className="text-gray-700 text-sm">{job.company}</p>
+                  <p className="text-blue-600 text-sm font-medium">{job.salary}</p>
+                  <p className="text-xs text-gray-500">{job.location}</p>
+                </div>
+                <button className="absolute top-3 right-3 text-gray-400 hover:text-blue-600 text-lg">♥</button>
+                <div className="flex justify-between items-center mt-4 text-sm">
+                  <span className="text-gray-500">{new Date(job.postedDate).toLocaleDateString("vi-VN")}</span>
+                  <button
+                    onClick={() => handleApplyJob(job)}
+                    className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600"
+                  >
+                    Ứng tuyển
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      {/* Slide indicators */}
-      <div className="flex justify-center mt-6 space-x-2">
-        {[0, 1].map((i) => (
-          <button
-            key={i}
-            className={`w-3 h-3 rounded-full ${i === currentPage ? 'bg-blue-600' : 'bg-gray-300'}`}
-            onClick={() => setCurrentPage(i)}
-          />
-        ))}
-      </div>
+          {/* Chấm tròn chuyển slide */}
+          <div className="flex justify-center mt-6 space-x-2">
+            {[0, 1].map((i) => (
+              <button
+                key={i}
+                className={`w-3 h-3 rounded-full ${i === currentPage ? 'bg-blue-600' : 'bg-gray-300'}`}
+                onClick={() => setCurrentPage(i)}
+              />
+            ))}
+          </div>
+        </div>
 
-      {/* Apply modal */}
-      <ApplyModal open={showApplyModal} onClose={() => setShowApplyModal(false)} job={selectedJob} />
+        {/* Modal ứng tuyển */}
+        <ApplyModal open={showApplyModal} onClose={() => setShowApplyModal(false)} job={selectedJob} />
+      </div>
     </div>
   );
 }

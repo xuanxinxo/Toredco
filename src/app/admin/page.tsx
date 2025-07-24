@@ -11,6 +11,7 @@ interface DashboardStats {
   activeJobs: number;
   pendingJobs: number;
   totalApplications: number;
+  totalNews: number;
 }
 
 export default function AdminDashboard() {
@@ -21,6 +22,7 @@ export default function AdminDashboard() {
     activeJobs: 0,
     pendingJobs: 0,
     totalApplications: 0,
+    totalNews: 0,
   });
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -36,6 +38,7 @@ export default function AdminDashboard() {
           activeJobs: 20,
           pendingJobs: 5,
           totalApplications: 12,
+          totalNews: 10,
         });
       } catch (error) {
         console.error("Error loading stats:", error);
@@ -445,9 +448,36 @@ export default function AdminDashboard() {
               <p className="text-xs text-gray-600">Xem và quản lý ứng viên</p>
             </div>
           </Link>
+
+            <Link
+            href="/admin/news"
+            className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow"
+          >
+            <div className="flex flex-col items-center text-center">
+              <div className="p-2 bg-indigo-100 rounded-lg mb-2">
+                <svg
+                  className="w-5 h-5 text-indigo-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                Đăng tin tức 
+              </h3>
+              <p className="text-xs text-gray-600">Xem tin tức</p>
+            </div>
+          </Link>
         </div>
 
-        {/* Recent Activity */}
+        
         <div className="bg-white rounded-lg shadow">
           <div className="px-6 py-4 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900">

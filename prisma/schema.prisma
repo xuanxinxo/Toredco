@@ -73,3 +73,14 @@ model User {
   name      String
   createdAt DateTime @default(now()) @db.Date
 }
+
+model Post {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  title      String
+  slug       String   @unique
+  content    String
+  published  Boolean  @default(false)
+  createdAt  DateTime @default(now()) @db.Date
+  updatedAt  DateTime @updatedAt @db.Date
+  authorId   String?
+}
