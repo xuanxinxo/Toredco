@@ -55,7 +55,7 @@ export default function JobList() {
 
   return (
     <div>
-      <h2 className="text-xl font-bold mb-4">Việc làm mới nhất</h2>
+      <h2 className="text-xl font-bold mb-4">Việc làm mới nhấts</h2>
       {jobs.length === 0 ? (
         <div>Chưa có việc làm nào được đăng</div>
       ) : (

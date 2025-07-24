@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 interface NewsItem {
-  id: string;
+  _id: string;
   title: string;
   summary?: string;
   image: string;
@@ -47,10 +47,10 @@ export default function NewsSection() {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {news.map((item) => (
           <div
-            key={item.id}
+            key={item._id}
             className="bg-white rounded-xl shadow hover:shadow-md transition-all duration-200"
           >
-            <Link href={item.link || "#"} className="block">
+            <Link href={`/news/${item._id}`} className="block">
               <div className="relative w-full h-40 rounded-t-xl overflow-hidden">
                 <Image
                   src={item.image}
