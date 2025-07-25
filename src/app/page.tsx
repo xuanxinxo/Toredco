@@ -17,16 +17,17 @@ export default function Home() {
   return (
     <>
       {/* <Banner /> */}
-      <div className='t-20'>      <HeroSection /></div>
-      <FeaturesSection />
-      <div className="grid grid-cols-1 md:grid-cols-10 gap-6 mb-8">
+      <div className='mb-8'>      
+        <HeroSection />
+      </div>
+      <div className="m grid grid-cols-1 md:grid-cols-10 gap-6 mb-8">
         <div className="md:col-span-7">
           <CarouselJob />
         </div>
         <div className="md:col-span-3">
           <JobList limit={3} containerClassName="grid gap-2" />
         </div>
-      </div>
+      </div>  
       <div className="space-y-8">
         <NewJobList
           limit={4}

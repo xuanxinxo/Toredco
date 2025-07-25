@@ -163,12 +163,12 @@ export default function CarouselJob() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 transition-opacity duration-500">
             {currentJobs.map((job) => (
-              <div key={job.id} className="bg-white border rounded-xl p-4 shadow-md hover:shadow-lg transition relative">
-                <div className="flex flex-col gap-1">
-                  <h3 className="text-base font-semibold text-red-600 line-clamp-2">{job.title}</h3>
-                  <p className="text-gray-700 text-sm">{job.company}</p>
+              <div key={job.id} className="bg-white border rounded-xl p-4 shadow-md hover:shadow-lg transition relative flex flex-col h-full overflow-hidden">
+                <div className="flex flex-col gap-1 flex-1 overflow-hidden">
+                  <h3 className="text-base font-semibold text-red-600 line-clamp-2 overflow-hidden break-words">{job.title}</h3>
+                  <p className="text-gray-700 text-sm break-words">{job.company}</p>
                   <p className="text-blue-600 text-sm font-medium">{job.salary}</p>
-                  <p className="text-xs text-gray-500">{job.location}</p>
+                  <p className="text-xs text-gray-500 break-words">{job.location}</p>
                 </div>
                 <button className="absolute top-3 right-3 text-gray-400 hover:text-blue-600 text-lg">♥</button>
                 <div className="flex justify-between items-center mt-4 text-sm">

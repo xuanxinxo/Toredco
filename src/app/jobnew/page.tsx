@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 
 interface Job {
-  id: string;
+  _id: string;
   title: string;
   company: string;
   location: string;
@@ -15,10 +15,8 @@ interface Job {
   deadline?: string;
   status: string;
   postedDate: string;
-  image?: string; // Nếu có trường hình ảnh
+  image?: string;
 }
-
-const DEFAULT_IMAGE = "/public/reparo-logo.png";
 
 function ApplyModal({ open, onClose, onSubmit, job }: any) {
   const formRef = useRef<HTMLFormElement>(null);
@@ -50,7 +48,7 @@ export default function AllJobsPage() {
     total: 0,
     totalPages: 0
   });
-  const [applyModal, setApplyModal] = useState<{open: boolean, job: any}>({open: false, job: null});
+  const [applyModal, setApplyModal] = useState<{ open: boolean, job: any }>({ open: false, job: null });
   const [applyLoading, setApplyLoading] = useState(false);
 
   useEffect(() => {
@@ -58,9 +56,7 @@ export default function AllJobsPage() {
       try {
         setLoading(true);
         const res = await fetch('/api/newjobs');
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         const data = await res.json();
         setJobs(data.jobs || []);
         setPagination(data.pagination || {});
@@ -74,7 +70,7 @@ export default function AllJobsPage() {
   }, []);
 
   const handleApply = (job: any) => {
-    setApplyModal({open: true, job});
+    setApplyModal({ open: true, job });
   };
 
   const handleApplySubmit = async (e: any) => {
@@ -87,7 +83,7 @@ export default function AllJobsPage() {
       phone: form.phone.value,
       cv: form.cv.value,
       message: form.message.value,
-      jobId: applyModal.job.id,
+      jobId: applyModal.job._id,
       hiringId: undefined,
     };
     const res = await fetch('/api/applications', {
@@ -98,7 +94,7 @@ export default function AllJobsPage() {
     setApplyLoading(false);
     if (res.ok) {
       alert('Ứng tuyển thành công!');
-      setApplyModal({open: false, job: null});
+      setApplyModal({ open: false, job: null });
     } else {
       alert('Ứng tuyển thất bại!');
     }
@@ -117,11 +113,11 @@ export default function AllJobsPage() {
     <div className="max-w-6xl mx-auto py-8">
       <h1 className="text-3xl font-bold mb-6">Tất cả việc làm</h1>
       <div className="mb-4 text-gray-600">
-        Hiển thị {jobs.length} trong tổng số {pagination.total} việc làm
+        Hiển thị {jobs.length} trong tổng số {pagination.total || jobs.length} việc làm
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {jobs.map(job => (
-          <div key={job.id} className="p-4 border rounded shadow flex flex-col items-center bg-white">
+          <div key={job._id} className="p-4 border rounded shadow flex flex-col items-center bg-white">
             <div className="font-semibold text-lg text-center">{job.title}</div>
             <div className="text-center">Công ty: {job.company}</div>
             <div className="text-center">Địa điểm: {job.location}</div>
@@ -142,7 +138,7 @@ export default function AllJobsPage() {
           </p>
         </div>
       )}
-      <ApplyModal open={applyModal.open} onClose={() => setApplyModal({open: false, job: null})} onSubmit={handleApplySubmit} job={applyModal.job} />
+      <ApplyModal open={applyModal.open} onClose={() => setApplyModal({ open: false, job: null })} onSubmit={handleApplySubmit} job={applyModal.job} />
     </div>
   );
 }
