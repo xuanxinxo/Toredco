@@ -16,7 +16,7 @@ export default function NewsAdmin() {
   const [title, setTitle] = useState('');
   const [summary, setSummary] = useState('');
   const [date, setDate] = useState('');
-  const [image, setImage] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [link, setLink] = useState('');
 
   const fetchNews = async () => {
@@ -29,13 +29,18 @@ export default function NewsAdmin() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const res = await fetch('/api/news', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, summary, date, image, link }),
-    });
+    const formData = new FormData();
+        formData.append('title', title);
+        formData.append('summary', summary);
+        formData.append('date', date);
+        if (imageFile) formData.append('image', imageFile);
+        formData.append('link', link);
+        const res = await fetch('/api/news', {
+          method: 'POST',
+          body: formData,
+        });
     if (res.ok) {
-      setTitle(''); setSummary(''); setDate(''); setImage(''); setLink('');
+      setTitle(''); setSummary(''); setDate(''); setImageFile(null); setLink('');
       fetchNews();
     } else {
       const errData = await res.json();
@@ -61,8 +66,8 @@ export default function NewsAdmin() {
           <input type="date" value={date} onChange={e => setDate(e.target.value)} className="border p-2 w-full" />
         </div>
         <div>
-          <label className="block">Image URL</label>
-          <input value={image} onChange={e => setImage(e.target.value)} className="border p-2 w-full" />
+          <label className="block">Hình ảnh</label>
+          <input type="file" accept="image/*" onChange={e => setImageFile(e.target.files?.[0] || null)} className="border p-2 w-full" />
         </div>
         <div>
           <label className="block">Link (optional)</label>

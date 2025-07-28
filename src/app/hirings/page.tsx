@@ -36,8 +36,8 @@ export default function HiringsJobNewList() {
       setError("");
       const res = await fetch("/api/hirings?status=approved");
       const json = await res.json();
-      if (Array.isArray(json.jobs)) {
-        setJobs(json.jobs);
+      if (Array.isArray(json.data)) {
+        setJobs(json.data);
       } else {
         setError("Không thể tải danh sách việc làm mới");
       }
