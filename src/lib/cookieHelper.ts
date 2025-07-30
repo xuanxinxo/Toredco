@@ -19,7 +19,7 @@ export const serverCookieHelper = {
       secure: process.env.NODE_ENV !== "development",
       maxAge: maxAgeSeconds,
       path: "/",
-      sameSite: "strict",
+      sameSite: "lax",
     });
   },
 
@@ -40,7 +40,7 @@ export const serverCookieHelper = {
       secure: process.env.NODE_ENV !== "development",
       maxAge: maxAgeSeconds,
       path: "/",
-      sameSite: "strict",
+      sameSite: "lax",
     });
   },
 

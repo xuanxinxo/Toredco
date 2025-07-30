@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
 
     /* 3. Trả response + set cookie */
     const response = NextResponse.json({
+      token,
       success: true,
       data: {
         user: {
@@ -58,8 +59,12 @@ export async function POST(request: NextRequest) {
     serverCookieHelper.setTokenToResponse(response, token);
 
     /* 4. Thêm CORS header (nếu gọi từ domain khác) */
-    response.headers.set('Access-Control-Allow-Origin', '*');
+    // Set CORS headers dynamically
+    const origin = request.headers.get('origin') || '';
+    response.headers.set('Access-Control-Allow-Origin', origin);
+    response.headers.set('Access-Control-Allow-Credentials', 'true');
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
     return response;
