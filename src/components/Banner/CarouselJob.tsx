@@ -165,7 +165,7 @@ export default function CarouselJob() {
             {currentJobs.map((job) => (
               <div key={job.id} className="bg-white border rounded-xl p-4 shadow-md hover:shadow-lg transition relative flex flex-col h-full overflow-hidden">
                 <div className="flex flex-col gap-1 flex-1 overflow-hidden">
-                  <h3 className="text-base font-semibold text-red-600 line-clamp-2 overflow-hidden break-words">{job.title}</h3>
+                  <h3 className="text-base font-semibold text-blue-600 line-clamp-2 overflow-hidden break-words">{job.title}</h3>
                   <p className="text-gray-700 text-sm break-words">{job.company}</p>
                   <p className="text-blue-600 text-sm font-medium">{job.salary}</p>
                   <p className="text-xs text-gray-500 break-words">{job.location}</p>

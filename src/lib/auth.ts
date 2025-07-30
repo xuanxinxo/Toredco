@@ -10,6 +10,18 @@ const adminUsers = [
     username: 'admin',
     password: '123456', 
     role: 'admin'
+  },
+  {
+    id: 2,
+    username: 'admin2',
+    password: '123456', 
+    role: 'admin'
+  },
+  {
+    id: 3,
+    username: 'admin3',
+    password: '123456',
+    role: 'admin'
   }
 ];
 
