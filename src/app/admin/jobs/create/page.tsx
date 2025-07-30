@@ -66,6 +66,7 @@ export default function CreateJob() {
     try {
       const token = localStorage.getItem('adminToken');
       const response = await fetch('/api/admin/jobs', {
+        credentials: 'include',
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
