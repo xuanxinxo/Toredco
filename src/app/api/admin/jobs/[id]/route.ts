@@ -2,6 +2,24 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAdminFromRequest } from '../../../../../lib/auth';
 import { prisma } from '../../../../../lib/prisma';
 
+// GET /api/admin/jobs/[id] - Lấy chi tiết việc làm
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const user = getAdminFromRequest(request);
+    if (!user || user.role !== 'admin') {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+    const job = await prisma.job.findUnique({ where: { id: params.id } });
+    if (!job) {
+      return NextResponse.json({ success: false, message: 'Job not found' }, { status: 404 });
+    }
+    return NextResponse.json({ success: true, data: job });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
+  }
+}
+
 // PUT /api/admin/jobs/[id] - Cập nhật việc làm
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {

@@ -1,0 +1,170 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+
+interface JobFormData {
+  title: string;
+  company: string;
+  location: string;
+  type: string;
+  salary: string;
+  description: string;
+  requirements: string[];
+  benefits: string[];
+  deadline: string;
+}
+
+export default function EditJob() {
+  const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
+
+  const [formData, setFormData] = useState<JobFormData>({
+    title: '',
+    company: '',
+    location: '',
+    type: 'Full-time',
+    salary: '',
+    description: '',
+    requirements: [''],
+    benefits: [''],
+    deadline: ''
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    // auth
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      router.push('/admin/login');
+      return;
+    }
+    // load job
+    fetch(`/api/admin/jobs/${id}`, { headers: { 'Authorization': `Bearer ${token}` } })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          const j = data.data;
+          setFormData({
+            title: j.title || '',
+            company: j.company || '',
+            location: j.location || '',
+            type: j.type || 'Full-time',
+            salary: j.salary || '',
+            description: j.description || '',
+            requirements: j.requirements && j.requirements.length > 0 ? j.requirements : [''],
+            benefits: j.benefits && j.benefits.length > 0 ? j.benefits : [''],
+            deadline: j.deadline || ''
+          });
+        } else {
+          setError(data.message || 'Failed to load job');
+        }
+      })
+      .catch(() => setError('Failed to load job'))
+      .finally(() => setLoading(false));
+  }, [id, router]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleArrayChange = (field: 'requirements' | 'benefits', idx: number, val: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: prev[field].map((item, i) => i === idx ? val : item)
+    }));
+  };
+
+  const addArrayItem = (field: 'requirements' | 'benefits') => {
+    setFormData(prev => ({ ...prev, [field]: [...prev[field], ''] }));
+  };
+
+  const removeArrayItem = (field: 'requirements' | 'benefits', idx: number) => {
+    setFormData(prev => ({ ...prev, [field]: prev[field].filter((_, i) => i !== idx) }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setError('');
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch(`/api/admin/jobs/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          ...formData,
+          requirements: formData.requirements.filter(r => r.trim()),
+          benefits: formData.benefits.filter(b => b.trim())
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        router.push('/admin/jobs');
+      } else {
+        setError(data.message || 'Update failed');
+      }
+    } catch (err) {
+      setError('Update failed');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+
+  return (
+    <div className="min-h-screen bg-gray-100 py-8">
+      <div className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow">
+        <h1 className="text-2xl font-bold mb-4">Sửa việc làm</h1>
+        {error && <div className="text-red-600 mb-4">{error}</div>}
+        <form onSubmit={handleSubmit}>
+          <div className="grid grid-cols-1 gap-4">
+            <input name="title" value={formData.title} onChange={handleInputChange} required placeholder="Tiêu đề" className="w-full px-3 py-2 border rounded" />
+            <input name="company" value={formData.company} onChange={handleInputChange} required placeholder="Công ty" className="w-full px-3 py-2 border rounded" />
+            <input name="location" value={formData.location} onChange={handleInputChange} required placeholder="Địa điểm" className="w-full px-3 py-2 border rounded" />
+            <select name="type" value={formData.type} onChange={handleInputChange} className="w-full px-3 py-2 border rounded">
+              <option>Full-time</option>
+              <option>Part-time</option>
+              <option>Contract</option>
+            </select>
+            <input name="salary" value={formData.salary} onChange={handleInputChange} placeholder="Lương" className="w-full px-3 py-2 border rounded" />
+            <textarea name="description" value={formData.description} onChange={handleInputChange} rows={4} placeholder="Mô tả" className="w-full px-3 py-2 border rounded" />
+            <div>
+              <label className="font-medium">Yêu cầu</label>
+              {formData.requirements.map((req, idx) => (
+                <div key={idx} className="flex items-center mb-2">
+                  <input value={req} onChange={e => handleArrayChange('requirements', idx, e.target.value)} className="flex-1 px-3 py-2 border rounded" />
+                  {formData.requirements.length > 1 && <button type="button" onClick={() => removeArrayItem('requirements', idx)} className="ml-2 text-red-600">Xóa</button>}
+                </div>
+              ))}
+              <button type="button" onClick={() => addArrayItem('requirements')} className="text-blue-600">+ Thêm yêu cầu</button>
+            </div>
+            <div>
+              <label className="font-medium">Quyền lợi</label>
+              {formData.benefits.map((ben, idx) => (
+                <div key={idx} className="flex items-center mb-2">
+                  <input value={ben} onChange={e => handleArrayChange('benefits', idx, e.target.value)} className="flex-1 px-3 py-2 border rounded" />
+                  {formData.benefits.length > 1 && <button type="button" onClick={() => removeArrayItem('benefits', idx)} className="ml-2 text-red-600">Xóa</button>}
+                </div>
+              ))}
+              <button type="button" onClick={() => addArrayItem('benefits')} className="text-blue-600">+ Thêm quyền lợi</button>
+            </div>
+            <input type="date" name="deadline" value={formData.deadline} onChange={handleInputChange} className="w-full px-3 py-2 border rounded" />
+          </div>
+          <div className="mt-6 flex justify-end space-x-4">
+            <button type="button" onClick={() => router.push('/admin/jobs')} className="px-4 py-2 border rounded">Hủy</button>
+            <button type="submit" disabled={saving} className="px-4 py-2 bg-green-600 text-white rounded disabled:opacity-50">{saving ? 'Đang cập nhật...' : 'Cập nhật'}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

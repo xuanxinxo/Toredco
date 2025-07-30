@@ -132,7 +132,7 @@ export default function AdminJobs() {
               <Link href="/admin" className="text-blue-600 hover:text-blue-800">
                 ← Quay lại Dashboard
               </Link>
-              <h1 className="text-2xl font-bold text-gray-900">Quản lý việc làm</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Quản lý việc llàm</h1>
             </div>
             <Link
               href="/admin/jobs/create"
