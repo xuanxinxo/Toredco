@@ -1,10 +1,11 @@
 
-'use client';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/src/lib/prisma';
 
 export async function GET(request: NextRequest) {
   try {
+      console.log('MONGODB_URI:', process.env.MONGODB_URI);
     const searchParams = request.nextUrl.searchParams;
 
     const page = parseInt(searchParams.get('page') || '1');
@@ -61,6 +62,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error fetching newjobs:', error);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Server error' }, { status: 500 });
   }
 } 
