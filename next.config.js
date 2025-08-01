@@ -4,7 +4,7 @@ const nextConfig = {
     domains: [
       'media-blog.jobsgo.vn',
       'thanhnien.vn',
-      'images2.thanhnien.vn'
+      'images2.thanhnien.vn',
     ],
   },
   typescript: {
@@ -13,6 +13,11 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  experimental: {
+    appDir: true,
+  },
+
+  dynamic: 'force-dynamic',
 };
 
 module.exports = nextConfig;
