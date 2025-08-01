@@ -72,7 +72,7 @@ export default function ApplyModal({ open, onClose, job }: ApplyModalProps) {
         >
           &times;
         </button>
-        <h2 className="text-lg font-bold mb-4 text-blue-700">Ứng tuyển: {job.title}</h2>
+        <h2 className="text-lg font-bold mb-4 text-blue-700">Ứng tuyển Việc làm nổi bật: {job.title}</h2>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <input
             name="name"

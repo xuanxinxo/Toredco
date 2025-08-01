@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import Modal from '@/src/components/ui/Modal';
+import NewJobApplyModal from '@/src/components/NewJobApplyModal';
 
-interface SpecialJob {
+export interface SpecialJob {
   _id: string;
   title: string;
   company: string;
@@ -107,24 +107,7 @@ export default function SpecialJobList() {
           >
             Ứng tuyển
           </button>
-          <Modal open={showModal === job._id} onClose={() => setShowModal(null)}>
-            <h2 className="text-lg font-bold mb-4">Ứng tuyển: {job.title}</h2>
-            <form onSubmit={e => handleSubmit(e, job._id)} className="flex flex-col gap-3">
-              <input name="name" value={form.name} onChange={handleChange} placeholder="Họ tên" className="border p-2 rounded" required />
-              <input name="email" value={form.email} onChange={handleChange} placeholder="Email" className="border p-2 rounded" required />
-              <input name="phone" value={form.phone} onChange={handleChange} placeholder="Số điện thoại" className="border p-2 rounded" required />
-              <input name="cv" value={form.cv} onChange={handleChange} placeholder="Link CV" className="border p-2 rounded" required />
-              <div className="flex gap-2 mt-2">
-                <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" disabled={submitting}>
-                  {submitting ? 'Đang gửi...' : 'Gửi ứng tuyển'}
-                </button>
-                <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={() => setShowModal(null)}>
-                  Hủy
-                </button>
-              </div>
-            </form>
-            {message && <div className="mt-2 text-center text-sm text-green-700">{message}</div>}
-          </Modal>
+          <NewJobApplyModal open={showModal === job._id} onClose={() => setShowModal(null)} job={job} />
         </div>
       ))}
     </div>

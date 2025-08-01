@@ -10,7 +10,7 @@ const Footer = () => {
           <h2 className="font-bold uppercase mb-4">ViecLab là dự án chiến lược bởi<br /> TOREDCO – Công ty tư vấn và đào tạo <br />nhân lực hàng đầu</h2>
           <ul className="space-y-2">
             <li className="flex items-center gap-2">
-              📞 (0236)6 526 368 – 0932 512 521
+              📞 02366 527799 – 0932 512 521
             </li>
             <li className="flex items-center gap-2">
               🌐 www.toredco.vn

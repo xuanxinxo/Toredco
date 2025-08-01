@@ -13,7 +13,8 @@ export default function CreateJob() {
     description: '',
     requirements: [''],
     benefits: [''],
-    deadline: ''
+    deadline: '',
+    img: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -56,6 +57,17 @@ export default function CreateJob() {
       ...prev,
       [field]: prev[field].filter((_, i) => i !== index)
     }));
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setFormData({ ...formData, img: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -249,10 +261,15 @@ export default function CreateJob() {
                   value={formData.deadline}
                   onChange={handleInputChange}
                 />
+                <input
+                  type="file"
+                  name="img"
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                />
               </div>
-            </div>
-
-            {/* Description */}
+          </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Mô tả công việc *

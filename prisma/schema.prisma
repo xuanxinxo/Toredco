@@ -13,13 +13,17 @@ model Application {
   cv        String?
   email     String
   hiringId  String?
+  hiring   Hiring? @relation(fields: [hiringId], references: [id])
   jobId     String?
+  job      Job?     @relation(fields: [jobId], references: [id])
   message   String?
   name      String
   phone     String
 }
 
 model Hiring {
+  applications Application[]
+  img          String?
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
   benefits     String[]
   company      String
@@ -34,6 +38,8 @@ model Hiring {
 }
 
 model Job {
+  applications Application[]
+  img          String?
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
   benefits     String[]
   company      String
@@ -49,6 +55,7 @@ model Job {
 }
 
 model NewJob {
+  img          String?
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
   benefits     String[]
   company      String

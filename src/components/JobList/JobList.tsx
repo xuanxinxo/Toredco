@@ -2,6 +2,7 @@
 
 import { Job } from "@/src/app/types/job";
 import JobCard from "@/src/components/JobList/JobCard";
+import JobApplyModal from "@/src/components/JobApplyModal"; // nhớ import
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
@@ -17,6 +18,7 @@ export default function JobList({
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null); // ✅ thêm modal control
 
   useEffect(() => {
     loadJobs();
@@ -27,14 +29,12 @@ export default function JobList({
       setLoading(true);
       setError("");
 
-      const res = await fetch("/api/jobs?limit=5");
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
+      const res = await fetch(`/api/hirings?limit=${limit}`);
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
       const json = await res.json();
-      if (json.jobs && Array.isArray(json.jobs)) {
-        setJobs(json.jobs.slice(0, limit));
+      if (json.data && Array.isArray(json.data)) {
+        setJobs(json.data.slice(0, limit));
       } else {
         throw new Error("Invalid response format");
       }
@@ -47,21 +47,20 @@ export default function JobList({
     }
   }
 
-  if (loading) {
-    return (
-      <section>
-        <Header />
-        <div className="grid gap-4 max-w-3xl mx-auto px-4">
-          {[...Array(limit)].map((_, i) => (
-            <div
-              key={i}
-              className="border p-4 rounded-lg shadow-sm bg-white animate-pulse"
-            >
-              <div className="flex justify-between items-start">
+  return (
+    <section className="h-full w-full">
+      <Header />
+
+      <div className={`grid gap-4 max-w-4xl w-full mx-auto px-4 ${containerClassName}`}>
+        {loading &&
+          [...Array(limit)].map((_, i) => (
+            <div key={i} className="border p-4 rounded-lg shadow-sm bg-white animate-pulse">
+              <div className="flex gap-4 items-start">
+                <div className="w-12 h-12 bg-gray-200 rounded-full" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-gray-200 rounded" />
-                  <div className="h-3 bg-gray-200 rounded w-3/4" />
-                  <div className="flex gap-2">
+                  <div className="h-4 bg-gray-200 rounded w-1/2" />
+                  <div className="h-3 bg-gray-200 rounded w-1/3" />
+                  <div className="flex gap-2 mt-2">
                     <div className="h-6 bg-gray-200 rounded w-20" />
                     <div className="h-6 bg-gray-200 rounded w-24" />
                   </div>
@@ -69,58 +68,54 @@ export default function JobList({
               </div>
             </div>
           ))}
-        </div>
-      </section>
-    );
-  }
 
-  if (error) {
-    return (
-      <section className="h-full">
-        <Header />
-        <div className="text-center py-8 text-gray-500">
-          {error}
-          <button
-            onClick={loadJobs}
-            className="ml-2 text-blue-600 underline hover:text-blue-800"
-          >
-            Thử lại
-          </button>
-        </div>
-      </section>
-    );
-  }
+        {!loading && error && (
+          <div className="text-center py-8 text-gray-500">
+            {error}
+            <button
+              onClick={loadJobs}
+              className="ml-2 text-blue-600 underline hover:text-blue-800"
+            >
+              Thử lại
+            </button>
+          </div>
+        )}
 
-  return (
-    <section className="h-full">
-      <Header />
-
-      <div className={`grid gap-4 max-w-3xl mx-auto px-4 ${containerClassName}`}>
-        {jobs.length === 0 ? (
+        {!loading && !error && jobs.length === 0 && (
           <div className="text-center py-8 text-gray-500">
             Chưa có việc làm nào được đăng
           </div>
-        ) : (
-          jobs.map((job) => (
-            <div key={job.id}>
-              <JobCard job={job} />
-            </div>
-          ))
         )}
+
+        {!loading &&
+          !error &&
+          jobs.map((job) => (
+            <div
+              className="transition-transform transform hover:-translate-y-1 hover:shadow-lg duration-300"
+              key={job.id}
+            >
+              <JobCard job={job} onApply={() => setSelectedJob(job)} />
+            </div>
+          ))}
       </div>
+
+      {/* ✅ Modal dùng chung */}
+      {selectedJob && (
+        <JobApplyModal
+          open={true}
+          onClose={() => setSelectedJob(null)}
+          job={selectedJob}
+        />
+      )}
     </section>
   );
 }
 
-/* ───────────── Sub-component Header ───────────── */
 function Header() {
   return (
-    <div className="flex justify-between items-center mb-4 max-w-3xl mx-auto px-4">
+    <div className="flex justify-between items-center mb-6 max-w-4xl mx-auto px-4">
       <h3 className="text-2xl font-bold">Việc làm mới nhất</h3>
-      <Link
-        href="/jobs"
-        className="text-blue-600 hover:text-blue-800 font-medium"
-      >
+      <Link href="/hirings" className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-full font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300">
         Xem tất cả →
       </Link>
     </div>

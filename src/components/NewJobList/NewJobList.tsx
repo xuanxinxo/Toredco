@@ -4,38 +4,22 @@ import { Job } from "@/src/app/types/job";
 import JobCard from "@/src/components/JobList/JobCard";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import JobCardNew from "./JobCardNew";
+// import NewJobApplyModal from "../NewJobApplyModal";
 
-
-import "keen-slider/keen-slider.min.css";
-import { useKeenSlider } from "keen-slider/react";
-
-interface JobListProps {
+interface NewJobListProps {
   limit?: number;
   containerClassName?: string;
 }
 
-export default function JobList({
+export default function NewJobList({
   limit = 3,
   containerClassName = "",
-}: JobListProps) {
+}: NewJobListProps) {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  /* Keen-Slider: 1 slide, tự chạy 3 giây */
-  const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>({
-    loop: true,
-    drag: false,
-    slides: { perView: 1 },
-  });
-
-  useEffect(() => {
-    if (!instanceRef.current) return;
-    const timer = setInterval(() => instanceRef.current?.next(), 3000);
-    return () => clearInterval(timer);
-  }, [instanceRef]);
-
-  /* Gọi API / lấy mock data */
   useEffect(() => {
     loadJobs();
   }, []);
@@ -44,42 +28,37 @@ export default function JobList({
     try {
       setLoading(true);
       setError("");
-      
-      const res = await fetch('/api/newjobs?limit=5');
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      
+
+      const res = await fetch(`/api/newjobs?limit=${limit}`);
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
       const json = await res.json();
       if (json.jobs && Array.isArray(json.jobs)) {
         setJobs(json.jobs.slice(0, limit));
       } else {
-        throw new Error('Invalid response format');
+        throw new Error("Invalid response format");
       }
     } catch (err) {
       console.error("Error loading jobs:", err);
       setError("Có lỗi xảy ra khi tải dữ liệu");
-      // Không sử dụng mock data để đảm bảo chỉ hiển thị jobs đã phê duyệt
       setJobs([]);
     } finally {
       setLoading(false);
     }
   }
 
-  /* ───────────── Loading ───────────── */
   if (loading) {
     return (
       <section className="h-full">
         <Header />
-        <div className="grid gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[...Array(limit)].map((_, i) => (
             <div
               key={i}
-              className="border p-4 rounded-lg shadow-sm bg-white animate-pulse"
+              className="border p-4 rounded-lg shadow-sm bg-white animate-pulse min-h-[260px]"
             >
-              
-              <div className="flex justify-between items-start">
-                <div className="flex-1 space-y-2">
+              <div className="flex flex-col justify-between h-full">
+                <div className="space-y-2">
                   <div className="h-4 bg-gray-200 rounded" />
                   <div className="h-3 bg-gray-200 rounded w-3/4" />
                   <div className="flex gap-2">
@@ -95,7 +74,6 @@ export default function JobList({
     );
   }
 
-  /* ───────────── Error ───────────── */
   if (error) {
     return (
       <section className="h-full">
@@ -113,35 +91,44 @@ export default function JobList({
     );
   }
 
-  /* ───────────── UI chính ───────────── */
   return (
     <section className="h-full">
-      {limit === 4 && <Header />}
-
-      <div ref={sliderRef} className={containerClassName}>
+      <Header />
+      <div
+        className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ${containerClassName}`}
+      >
         {jobs.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-gray-500 col-span-full">
             Chưa có việc làm nào được đăng
           </div>
         ) : (
-          jobs.map((job) => <JobCard key={job.id} job={job} />)
+          jobs.map((job) => (
+            <div key={job.id} className="h-full">
+              <JobCardNew job={job} />
+              {/* <NewJobApplyModal open={showModal === job._id} onClose={() => setShowModal(null)} job={job} /> */}
+            </div>
+          ))
         )}
       </div>
     </section>
   );
 }
 
-/* ───────────── Sub-component Header ───────────── */
 function Header() {
   return (
-    <div className="flex justify-between items-center mb-6">
-      <h3 className="text-2xl font-bold">Việc làm mới nhất nè các bạn ơi </h3>
+    <div className="flex justify-between items-center mb-6 mt-5">
+      <h3 className="text-2xl font-bold">Việc làm mới nhất nè các bạn ơi</h3>
       <Link
         href="/jobnew"
-        className="text-blue-600 hover:text-blue-800 font-medium"
+        className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-full font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300"
       >
-        Xem tất cảs →
+        Xem tất cả việc làm mới →
       </Link>
+        {/* <div className="flex justify-center mt-8">
+            <Link href={`/jobs?page=${currentPage + 1}`} className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-full font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300">
+              Xem thêm việc làm →
+            </Link>
+          </div> */}
     </div>
   );
 }

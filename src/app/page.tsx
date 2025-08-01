@@ -11,13 +11,14 @@ import ReviewRankingTable from '../components/reviewSection/ReviewSection';
 import CarouselJob from "@/src/components/Banner/CarouselJob";
 import Marquee from '@/src/components/Banner/Marquee';
 import SpecialJobList from '../components/NewJobList/SpecialJobList';
-import NewJobList from '../components/NewJobList/JobList';
+import NewJobList from '../components/NewJobList/NewJobList';
 import NewsSection from '../components/NewsSection';
+import LogoSupport from '../components/Banner/LogoSuport';
 export default function Home() {
   return (
     <>
       {/* <Banner /> */}
-      <div className='mb-8'>      
+      <div className='mb-8'>
         <HeroSection />
       </div>
       <div className="m grid grid-cols-1 md:grid-cols-10 gap-6 mb-8">
@@ -25,9 +26,12 @@ export default function Home() {
           <CarouselJob />
         </div>
         <div className="md:col-span-3">
-          <JobList limit={3} containerClassName="grid gap-2" />
+          <JobList limit={2} containerClassName="grid gap-2" />
         </div>
-      </div>  
+      </div>
+   <div className="space-y-8">
+        <LogoSupport />
+      </div>
       <div className="space-y-8">
         <NewJobList
           limit={4}
@@ -36,6 +40,8 @@ export default function Home() {
         <Marquee />
         <HiringList />
       </div>
+   
+
       <div className="space-y-8">
         <NewsSection />
         <ReviewRankingTable />

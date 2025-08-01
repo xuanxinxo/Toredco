@@ -43,18 +43,35 @@ export async function GET() {
     /* ─── Company ⭐5 ─── */
     { id: 101, category: 'company', name: 'Công ty ABC', rating: 5, avatar: '/img/vinground.png' },
     { id: 102, category: 'company', name: 'Công ty MB',  rating: 5, avatar: '/img/mb.png' },
+    { id: 103, category: 'company', name: 'Công ty MB',  rating: 5, avatar: '/img/mb.png' },
+    { id: 104, category: 'company', name: 'Công ty MB',  rating: 5, avatar: '/img/mb.png' },
 
     /* ─── Company ⭐4 ─── */
-    { id: 103, category: 'company', name: 'Công ty XYZ', rating: 4, avatar: '/img/agri.jpg' },
+    { id: 105, category: 'company', name: 'Công ty XYZ', rating: 4, avatar: '/img/agri.jpg' },
+    { id: 106, category: 'company', name: 'Công ty XYZ', rating: 4, avatar: '/img/agri.jpg' },
+    { id: 107, category: 'company', name: 'Công ty XYZ', rating: 4, avatar: '/img/agri.jpg' },
+    { id: 108, category: 'company', name: 'Công ty XYZ', rating: 4, avatar: '/img/agri.jpg' },
 
     /* ─── Company ⭐3 ─── */
-    { id: 104, category: 'company', name: 'Công ty DEF', rating: 3, avatar: '/img/thaco.png' },
+    { id: 109, category: 'company', name: 'Công ty DEF', rating: 3, avatar: '/img/thaco.png' },
+    { id: 1010, category: 'company', name: 'Công ty DEF', rating: 3, avatar: '/img/thaco.png' },
+    { id: 1014, category: 'company', name: 'Công ty DEF', rating: 3, avatar: '/img/thaco.png' },
+    { id: 1043, category: 'company', name: 'Công ty DEF', rating: 3, avatar: '/img/thaco.png' },
+    { id: 1044, category: 'company', name: 'Công ty DEF', rating: 3, avatar: '/img/thaco.png' },
 
     /* ─── Company ⭐2 ─── */
-    { id: 105, category: 'company', name: 'Công ty MNO', rating: 2, avatar: '/img/ava.jpg' },
+    { id: 1005, category: 'company', name: 'Công ty MNO', rating: 2, avatar: '/img/ava.jpg' },
+    { id: 1075, category: 'company', name: 'Công ty MNO', rating: 2, avatar: '/img/ava.jpg' },
+    { id: 1045, category: 'company', name: 'Công ty MNO', rating: 2, avatar: '/img/ava.jpg' },
+    { id: 1025, category: 'company', name: 'Công ty MNO', rating: 2, avatar: '/img/ava.jpg' },
+    { id: 1054, category: 'company', name: 'Công ty MNO', rating: 2, avatar: '/img/ava.jpg' },
 
     /* ─── Company ⭐1 ─── */
-    { id: 106, category: 'company', name: 'Công ty PQR', rating: 1, avatar: '/img/ava.jpg' },
+    { id: 1096, category: 'company', name: 'Công ty PQR', rating: 1, avatar: '/img/ava.jpg' },
+    { id: 1106, category: 'company', name: 'Công ty PQR', rating: 1, avatar: '/img/ava.jpg' },
+    { id: 1306, category: 'company', name: 'Công ty PQR', rating: 1, avatar: '/img/ava.jpg' },
+    { id: 1026, category: 'company', name: 'Công ty PQR', rating: 1, avatar: '/img/ava.jpg' },
+    { id: 1046, category: 'company', name: 'Công ty PQR', rating: 1, avatar: '/img/ava.jpg' },
   ];
 
   return NextResponse.json({ data });

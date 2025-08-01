@@ -10,6 +10,7 @@ interface Hiring {
   type: string;
   salary: string;
   deadline: string;
+  img: string;
 }
 
 const initialForm = {
@@ -19,6 +20,7 @@ const initialForm = {
   type: '',
   salary: '',
   deadline: '',
+  img: '',
 };
 
 export default function AdminHiringPage() {
@@ -39,6 +41,17 @@ export default function AdminHiringPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setForm({ ...form, img: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -87,6 +100,7 @@ export default function AdminHiringPage() {
           <input name="type" value={form.type} onChange={handleChange} placeholder="Loại" className="border p-2 rounded" required />
           <input name="salary" value={form.salary} onChange={handleChange} placeholder="Lương" className="border p-2 rounded" required />
           <input name="deadline" value={form.deadline} onChange={handleChange} placeholder="Hạn nộp (YYYY-MM-DD)" className="border p-2 rounded" required />
+          <input type="file" name="img" onChange={handleFileChange} accept="image/*" className="border p-2 rounded" />
           <div className="col-span-2 flex gap-2 mt-2">
             <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" disabled={submitting}>
               {submitting ? 'Đang đăng...' : 'Đăng Hiring'}
@@ -102,6 +116,7 @@ export default function AdminHiringPage() {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tiêu đề</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Logo</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Công ty</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Địa điểm</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Loại</th>
@@ -119,6 +134,7 @@ export default function AdminHiringPage() {
               hirings.map(hiring => (
                 <tr key={hiring.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">{hiring.title}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{hiring.img ? <img src={hiring.img} alt="logo" className="h-8 w-8 object-contain" /> : null}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{hiring.company}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{hiring.location}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{hiring.type}</td>
