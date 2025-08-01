@@ -1,6 +1,7 @@
+'use client';
 import { Job } from '@/src/app/types/job';
+
 import React, { useState } from 'react';
-import JobApplyModal from '@/src/components/JobApplyModal';
 import NewJobApplyModal from '../NewJobApplyModal';
 
 export default function JobCardNew({ job }: { job: Job }) {

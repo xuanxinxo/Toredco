@@ -1,7 +1,9 @@
-'use client';
+"use client";
 
-import { useSearchParams, useRouter } from 'next/navigation';
-import { useEffect, useState, useRef } from 'react';
+import React, { Suspense, useEffect, useRef, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+
+export const dynamic = "force-dynamic";
 
 interface Job {
   id: string;
@@ -53,32 +55,29 @@ function ApplyModal({ open, onClose, onSubmit, job }: any) {
   );
 }
 
-export default function AllJobsPage() {
+export default function AllJobsPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({
-    page: parseInt(searchParams.get('page') || '1', 9),
+    page: 1,
     limit: 9,
     total: 0,
     totalPages: 0,
   });
+
   const [applyModal, setApplyModal] = useState<{ open: boolean; job: any }>({
     open: false,
     job: null,
   });
 
-  // Cập nhật page nếu URL thay đổi
   useEffect(() => {
-    const currentPage = parseInt(searchParams.get('page') || '1',9);
-    setPagination((prev) => ({
-      ...prev,
-      page: currentPage,
-    }));
+    const currentPage = parseInt(searchParams.get("page") || "1", 10);
+    setPagination((prev) => ({ ...prev, page: currentPage }));
   }, [searchParams]);
 
-  // Tải dữ liệu job khi page hoặc limit thay đổi
   useEffect(() => {
     async function loadJobs() {
       setLoading(true);
@@ -92,7 +91,7 @@ export default function AllJobsPage() {
           totalPages: data.pagination.totalPages,
         }));
       } catch (error) {
-        console.error('Lỗi khi tải jobs:', error);
+        console.error("Lỗi khi tải jobs:", error);
       } finally {
         setLoading(false);
       }
@@ -100,31 +99,31 @@ export default function AllJobsPage() {
     loadJobs();
   }, [pagination.page, pagination.limit]);
 
-  const handleApply = (job: any) => {
+  const handleApply = (job: Job) => {
     setApplyModal({ open: true, job });
   };
 
-  const handleApplySubmit = async (e: any) => {
+  const handleApplySubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const form = e.target;
+    const form = e.currentTarget;
     const data = {
-      name: form.name.value,
-      email: form.email.value,
-      phone: form.phone.value,
-      cv: form.cv.value,
-      message: form.message.value,
+      name: (form.name as any).value,
+      email: (form.email as any).value,
+      phone: (form.phone as any).value,
+      cv: (form.cv as any).value,
+      message: (form.message as any).value,
       jobId: applyModal.job.id,
     };
-    const res = await fetch('/api/applications', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch("/api/applications", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
     if (res.ok) {
-      alert('Ứng tuyển thành công!');
+      alert("Ứng tuyển thành công!");
       setApplyModal({ open: false, job: null });
     } else {
-      alert('Ứng tuyển thất bại!');
+      alert("Ứng tuyển thất bại!");
     }
   };
 
@@ -140,16 +139,16 @@ export default function AllJobsPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-10">
       <div className="flex items-center gap-4 mb-6">
-      <button
-        onClick={() => router.back()}
-        className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded hover:bg-blue-200 transition-all"
-      >
-        ← Quay lại
-      </button>
-      <h1 className="text-2xl md:text-3xl font-bold text-blue-700">
-        Danh sách việc làm nổi bật
-      </h1>
-    </div>
+        <button
+          onClick={() => router.back()}
+          className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded hover:bg-blue-200 transition-all"
+        >
+          ← Quay lại
+        </button>
+        <h1 className="text-2xl md:text-3xl font-bold text-blue-700">
+          Danh sách việc làm nổi bật
+        </h1>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {jobs.map((job) => (
@@ -162,8 +161,10 @@ export default function AllJobsPage() {
               <p className="text-sm text-gray-700 mb-1">Công ty: {job.company}</p>
               <p className="text-sm text-gray-600">Địa điểm: {job.location}</p>
               <p className="text-sm text-gray-600">Loại hình: {job.type}</p>
-              <p className="text-sm text-gray-600">Lương: {job.salary || 'Thỏa thuận'}</p>
-              <p className="text-sm text-gray-400">Đăng ngày: {new Date(job.postedDate).toLocaleDateString('vi-VN')}</p>
+              <p className="text-sm text-gray-600">Lương: {job.salary || "Thỏa thuận"}</p>
+              <p className="text-sm text-gray-400">
+                Đăng ngày: {new Date(job.postedDate).toLocaleDateString("vi-VN")}
+              </p>
               <p className="mt-2 text-sm text-gray-600 line-clamp-3">{job.description}</p>
             </div>
             <button
@@ -176,7 +177,6 @@ export default function AllJobsPage() {
         ))}
       </div>
 
-      {/* PHÂN TRANG */}
       {pagination.totalPages > 1 && (
         <>
           <div className="mt-8 flex justify-center items-center gap-2">
@@ -185,13 +185,15 @@ export default function AllJobsPage() {
               className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
               onClick={() => router.push(`/jobs?page=${pagination.page - 1}`)}
             >
-              {'<'} Trước
+              {"<"} Trước
             </button>
 
             {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((p) => (
               <button
                 key={p}
-                className={`px-3 py-1 rounded ${p === pagination.page ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}
+                className={`px-3 py-1 rounded ${
+                  p === pagination.page ? "bg-blue-600 text-white" : "bg-gray-100"
+                }`}
                 onClick={() => router.push(`/jobs?page=${p}`)}
               >
                 {p}
@@ -203,7 +205,7 @@ export default function AllJobsPage() {
               className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
               onClick={() => router.push(`/jobs?page=${pagination.page + 1}`)}
             >
-              Tiếp {'>'}
+              Tiếp {">"}
             </button>
           </div>
 

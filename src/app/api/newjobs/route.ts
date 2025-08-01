@@ -3,7 +3,8 @@ import { prisma } from '@/src/lib/prisma';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const searchParams = request.nextUrl.searchParams;
+
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const search = searchParams.get('search') || '';
@@ -14,7 +15,6 @@ export async function GET(request: NextRequest) {
 
     const skip = (page - 1) * limit;
 
-    // Chỉ lấy jobs có status = 'active' (đã được phê duyệt)
     const where: any = {
       status: 'active'
     };

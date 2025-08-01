@@ -5,11 +5,12 @@ export interface Job {
   company: string;
   location: string;
   type: string;
-  salary: string;
+  salary?: string;
   description: string;
   requirements: string[];
   benefits: string[];
   postedDate: string;
-  deadline: string;
+  deadline?: string;
   status: string;
+
 }
