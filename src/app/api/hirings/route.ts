@@ -43,6 +43,22 @@ export async function POST(req: Request) {
       );
     }
 
+    // Parse deadline string into Date, support dd/MM/yyyy
+    let deadlineDate: Date;
+    if (deadline.includes("/")) {
+      const parts = deadline.split("/");
+      if (parts.length !== 3) {
+        return NextResponse.json({ success: false, message: 'Định dạng hạn nộp không hợp lệ' }, { status: 400 });
+      }
+      const [day, month, year] = parts;
+      deadlineDate = new Date(`${year}-${month}-${day}`);
+    } else {
+      deadlineDate = new Date(deadline);
+    }
+    if (isNaN(deadlineDate.getTime())) {
+      return NextResponse.json({ success: false, message: 'Định dạng hạn nộp không hợp lệ' }, { status: 400 });
+    }
+
     const newHiring = await prisma.hiring.create({
       data: {
         title,
@@ -51,7 +67,7 @@ export async function POST(req: Request) {
         type,
         salary,
         img,
-        deadline: new Date(deadline),
+        deadline: deadlineDate,
         postedDate: new Date(),
         description,
         requirements,

@@ -18,6 +18,7 @@ export default function CreateJob() {
     benefits: [''],
     deadline: '',
     tags: [''],
+    img: '',
     isRemote: false
   });
   const [loading, setLoading]   = useState(false);
@@ -222,19 +223,7 @@ export default function CreateJob() {
                 className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
               />
             </div>
-
-            <div className="flex items-center space-x-3">
-              <input
-                type="checkbox"
-                id="isRemote"
-                name="isRemote"
-                checked={formData.isRemote}
-                onChange={handleInputChange}
-                className="h-5 w-5 text-blue-600"
-              />
-            </div>
           </div>
-
           {/* ---- DESCRIPTION ---- */}
           <div>
             <label className="block text-sm font-medium mb-1">
@@ -251,7 +240,6 @@ export default function CreateJob() {
             />
           </div>
 
-          {/* ---- REQUIREMENTS ---- */}
           <div>
             <label className="block text-sm font-medium mb-2">
               Yêu cầu công việc
@@ -285,7 +273,6 @@ export default function CreateJob() {
             </button>
           </div>
 
-          {/* ---- BENEFITS ---- */}
           <div>
             <label className="block text-sm font-medium mb-2">
               Quyền lợi
@@ -318,41 +305,6 @@ export default function CreateJob() {
               + Thêm quyền lợi
             </button>
           </div>
-
-          {/* ---- TAGS ---- */}
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Tags (kỹ năng / từ khóa)
-            </label>
-            {formData.tags.map((tag, idx) => (
-              <div key={idx} className="flex space-x-2 mb-2">
-                <input
-                  type="text"
-                  value={tag}
-                  onChange={e => handleArrayChange('tags', idx, e.target.value)}
-                  className="flex-1 px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
-                  placeholder="VD: React, NodeJS"
-                />
-                {formData.tags.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeArrayItem('tags', idx)}
-                    className="px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-                  >
-                    Xóa
-                  </button>
-                )}
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={() => addArrayItem('tags')}
-              className="mt-2 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
-            >
-              + Thêm tag
-            </button>
-          </div>
-
           {/* ---- ACTIONS ---- */}
           <div className="flex justify-end space-x-4">
             <button

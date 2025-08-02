@@ -99,7 +99,6 @@ export default function JobList({
           ))}
       </div>
 
-      {/* ✅ Modal dùng chung */}
       {selectedJob && (
         <JobApplyModal
           open={true}
@@ -113,11 +112,15 @@ export default function JobList({
 
 function Header() {
   return (
-    <div className="flex justify-between items-center mb-6 max-w-4xl mx-auto px-4">
+    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 max-w-4xl mx-auto px-4">
       <h3 className="text-2xl font-bold">Việc làm mới nhất</h3>
-      <Link href="/hirings" className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-full font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300">
+      <Link
+        href="/hirings"
+        className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 sm:px-8 sm:py-3 rounded-full font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300"
+      >
         Xem tất cả →
       </Link>
     </div>
+
   );
 }

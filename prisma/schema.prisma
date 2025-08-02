@@ -20,6 +20,7 @@ model Application {
 }
 
 model Hiring {
+  img          String?
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
   benefits     String[]
   company      String
@@ -35,6 +36,7 @@ model Hiring {
 
 model Job {
   id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  img          String?
   benefits     String[]
   company      String
   createdAt    DateTime? @db.Date
@@ -53,6 +55,7 @@ model Job {
 
 model NewJob {
   id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  img          String?
   benefits     String[]
   company      String
   createdAt    DateTime @db.Date

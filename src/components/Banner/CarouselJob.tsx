@@ -13,6 +13,7 @@ interface Job {
   salary: string;
   description: string;
   postedDate: string;
+  img?: string;
 }
 
 function ApplyModal({ open, onClose, job }: { open: boolean; onClose: () => void; job: Job | null }) {
@@ -112,7 +113,7 @@ export default function CarouselJob() {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentPage((prev) => (prev + 1) % 2); // ✅ Chỉ 2 slide
+      setCurrentPage((prev) => (prev + 1) % 2);
     }, 25000);
     return () => clearInterval(timer);
   }, []);
@@ -150,7 +151,6 @@ export default function CarouselJob() {
 
   return (
     <div className="w-full bg-gray-50 relative overflow-hidden">
-      {/* Nền hình ảnh */}
       <div
         className="absolute inset-0 bg-cover bg-center transition-opacity duration-500 opacity-20 blur-sm"
         style={{ backgroundImage: `url(${bgImages[currentPage]})` }}
@@ -162,14 +162,20 @@ export default function CarouselJob() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {currentJobs.map((job) => (
-              <div key={job.id} className="bg-white border rounded-xl p-4 shadow-md hover:shadow-lg transition relative flex flex-col h-full overflow-hidden transition-transform transform hover:-translate-y-1 hover:shadow-lg duration-300">
+              <div key={job.id} className="bg-white border rounded-xl p-4 shadow-md hover:shadow-lg transition relative flex flex-col h-full overflow-hidden transition-transform transform hover:-translate-y-1 duration-300">
                 <div className="flex flex-col gap-1 flex-1 overflow-hidden">
-                  <h3 className="text-base font-semibold text-blue-600 line-clamp-2">{job.title}</h3>
+                  <div className="flex items-start gap-2">
+                    <img
+                      src={job.img || "/img/job-icon.svg"}
+                      alt="Logo"
+                      className="w-12 h-12 mt-1 object-contain shrink-0"
+                    />
+                    <h3 className="text-base font-semibold text-blue-600 line-clamp-2">{job.title}</h3>
+                  </div>
                   <p className="text-gray-700 text-sm">{job.company}</p>
                   <p className="text-blue-600 text-sm font-medium">{job.salary}</p>
                   <p className="text-xs text-gray-500">{job.location}</p>
                 </div>
-                <button className="absolute top-3 right-3 text-gray-400 hover:text-blue-600 text-lg">♥</button>
                 <div className="flex justify-between items-center mt-4 text-sm">
                   <span className="text-gray-500">{new Date(job.postedDate).toLocaleDateString("vi-VN")}</span>
                   <button
@@ -183,7 +189,6 @@ export default function CarouselJob() {
             ))}
           </div>
 
-          {/* Chấm tròn điều hướng slide */}
           <div className="flex justify-center mt-6 space-x-2">
             {[0, 1].map((i) => (
               <button
@@ -194,7 +199,6 @@ export default function CarouselJob() {
             ))}
           </div>
 
-          {/* 🔽 Nút Xem thêm */}
           <div className="flex justify-center mt-8">
             <Link href={`/jobs?page=${currentPage + 1}`} className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-full font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300">
               Xem thêm việc làm →

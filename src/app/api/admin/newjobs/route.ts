@@ -4,13 +4,29 @@ import { prisma } from '@/src/lib/prisma';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, company, location, salary, tags, isRemote, type, description, requirements, benefits, deadline } = body;
+    const { title, company, location, salary, tags, isRemote, type, description, requirements, benefits, deadline, img } = body;
 
-    if (!title || !company || !location || !type || !description || !deadline) {
+    if (!title || !company || !location || !type || !description || !deadline || !img) {
       return NextResponse.json({ success: false, message: 'Missing required fields' }, { status: 400 });
     }
 
     const newJob = await prisma.newJob.create({
+      data: {
+        title,
+        company,
+        location,
+        salary: salary?.toString() || 'Thỏa thuận',
+        tags: tags ?? [],
+        isRemote: isRemote ?? false,
+        type,
+        description,
+        requirements: requirements ?? [],
+        benefits: benefits ?? [],
+        deadline: new Date(deadline),
+        status: 'pending', // Mặc định là pending, cần admin phê duyệt
+        postedDate: new Date(),
+        createdAt: new Date(),
+        img,
       data: {
         title,
         company,
