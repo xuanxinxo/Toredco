@@ -1,7 +1,6 @@
 'use client';
 import HeroSection from '../components/hero/HeroSection';
 import FeaturesSection from '../components/features/FeaturesSection';
-import FreelancerList from '../components/freelancerList/FreelancerList';
 import JobList from '../components/JobList/JobList';
 import { HiringList } from '../components/hiringList/HiringList';
 // import ReviewRankingTable, { ReviewSection } from '../components/reviewSection/ReviewSection';
@@ -17,7 +16,6 @@ import LogoSupport from '../components/Banner/LogoSuport';
 export default function Home() {
   return (
     <>
-      {/* <Banner /> */}
       <div className='mb-8'>
         <HeroSection />
       </div>
@@ -29,7 +27,7 @@ export default function Home() {
           <JobList limit={2} containerClassName="grid gap-2" />
         </div>
       </div>
-   <div className="space-y-8">
+      <div className="space-y-8">
         <LogoSupport />
       </div>
       <div className="space-y-8">
@@ -40,8 +38,6 @@ export default function Home() {
         <Marquee />
         <HiringList />
       </div>
-   
-
       <div className="space-y-8">
         <NewsSection />
         <ReviewRankingTable />

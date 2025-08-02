@@ -13,11 +13,9 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  experimental: {
-    appDir: true,
-  },
 
-  dynamic: 'force-dynamic',
+
+
 };
 
 module.exports = nextConfig;

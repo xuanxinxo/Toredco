@@ -1,9 +1,9 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import React, { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-
-export const dynamic = "force-dynamic";
 
 interface Job {
   id: string;
@@ -55,7 +55,7 @@ function ApplyModal({ open, onClose, onSubmit, job }: any) {
   );
 }
 
-export default function AllJobsPageContent() {
+export function AllJobsPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -191,9 +191,7 @@ export default function AllJobsPageContent() {
             {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((p) => (
               <button
                 key={p}
-                className={`px-3 py-1 rounded ${
-                  p === pagination.page ? "bg-blue-600 text-white" : "bg-gray-100"
-                }`}
+                className={`px-3 py-1 rounded ${p === pagination.page ? "bg-blue-600 text-white" : "bg-gray-100"}`}
                 onClick={() => router.push(`/jobs?page=${p}`)}
               >
                 {p}
@@ -222,5 +220,14 @@ export default function AllJobsPageContent() {
         job={applyModal.job}
       />
     </div>
+  );
+}
+
+// 👇 Đây là component chính được export (bọc <Suspense>)
+export default function JobsPageWrapper() {
+  return (
+    <Suspense fallback={<div>Đang tải việc làm...</div>}>
+      <AllJobsPageContent />
+    </Suspense>
   );
 }
