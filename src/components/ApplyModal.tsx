@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 interface Job {
-  id: string;
+  id: string | number;
   title: string;
   company: string;
   location: string;

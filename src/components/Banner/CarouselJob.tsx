@@ -90,7 +90,7 @@ export default function CarouselJob() {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const router = useRouter();
 
-  const jobsPerPage = 8;
+  const jobsPerPage = 6;
   const bgImages = ['/img/slide-1.png', '/img/slide-2.png'];
 
   useEffect(() => {
@@ -160,34 +160,48 @@ export default function CarouselJob() {
         <div className="max-w-7xl mx-auto px-4 py-2">
           <h2 className="text-2xl font-bold text-blue-700 mb-6">Việc làm nổi bật</h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {currentJobs.map((job) => (
-              <div key={job.id} className="bg-white border rounded-xl p-4 shadow-md hover:shadow-lg transition relative flex flex-col h-full overflow-hidden transition-transform transform hover:-translate-y-1 duration-300">
-                <div className="flex flex-col gap-1 flex-1 overflow-hidden">
-                  <div className="flex items-start gap-2">
+              <div
+                key={job.id}
+                className="bg-white border rounded-2xl p-6 shadow-lg hover:shadow-xl transition relative flex flex-col h-full overflow-hidden transform hover:-translate-y-1 duration-300"
+              >
+                <div className="flex flex-col gap-2 flex-1 overflow-hidden">
+                  <div className="flex items-start gap-3">
                     <img
                       src={job.img || "/img/job-icon.svg"}
                       alt="Logo"
-                      className="w-12 h-12 mt-1 object-contain shrink-0"
+                      className="w-16 h-16 object-contain shrink-0"
                     />
-                    <h3 className="text-base font-semibold text-blue-600 line-clamp-2">{job.title}</h3>
+                    <h3 className="text-lg font-semibold text-blue-700 line-clamp-2">{job.title}</h3>
                   </div>
-                  <p className="text-gray-700 text-sm">{job.company}</p>
-                  <p className="text-blue-600 text-sm font-medium">{job.salary}</p>
-                  <p className="text-xs text-gray-500">{job.location}</p>
+                  <p className="text-gray-700 text-base">{job.company}</p>
+                  <p className="text-blue-600 text-base font-medium">{job.salary}</p>
+                  <p className="text-sm text-gray-500">{job.location}</p>
                 </div>
-                <div className="flex justify-between items-center mt-4 text-sm">
+                <div className="flex justify-between items-center mt-4 text-xs">
                   <span className="text-gray-500">{new Date(job.postedDate).toLocaleDateString("vi-VN")}</span>
-                  <button
-                    onClick={() => handleApplyJob(job)}
-                    className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600"
-                  >
-                    Ứng tuyển
-                  </button>
+                  <div className="flex gap-2 shrink-0">
+                    <button
+                      onClick={() => handleApplyJob(job)}
+                      className="bg-green-500 text-white px-3 py-1.5 rounded hover:bg-green-600 whitespace-nowrap"
+                    >
+                      Ứng tuyển
+                    </button>
+                    <Link
+                      href={`/banner/${job.id}`}
+                      className="bg-blue-500 text-white px-3 py-1.5 rounded hover:bg-blue-600 whitespace-nowrap"
+                    >
+                      Xem chi tiết
+                    </Link>
+                  </div>
                 </div>
+
+
               </div>
             ))}
           </div>
+
 
           <div className="flex justify-center mt-6 space-x-2">
             {[0, 1].map((i) => (
