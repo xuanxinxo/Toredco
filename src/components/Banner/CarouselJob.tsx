@@ -171,14 +171,16 @@ export default function CarouselJob() {
                     <img
                       src={job.img || "/img/job-icon.svg"}
                       alt="Logo"
-                      className="w-16 h-16 object-contain shrink-0"
+                      className="w-full h-full object-contain bg-white rounded-t-md"
                     />
-                    <h3 className="text-lg font-semibold text-blue-700 line-clamp-2">{job.title}</h3>
+
                   </div>
+                  <h3 className="text-lg font-semibold text-blue-700 line-clamp-2">{job.title}</h3>
                   <p className="text-gray-700 text-base">{job.company}</p>
                   <p className="text-blue-600 text-base font-medium">{job.salary}</p>
                   <p className="text-sm text-gray-500">{job.location}</p>
                 </div>
+
                 <div className="flex justify-between items-center mt-4 text-xs">
                   <span className="text-gray-500">{new Date(job.postedDate).toLocaleDateString("vi-VN")}</span>
                   <div className="flex gap-2 shrink-0">

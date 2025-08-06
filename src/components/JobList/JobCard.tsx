@@ -15,20 +15,24 @@ export default function JobCard({
       <div className="space-y-2">
         <div className="flex items-start gap-3">
           <div className="min-w-0 flex-1">
-            <h4 className="font-semibold text-lg text-blue-900 truncate">
-              {job.title}
-            </h4>
-            <p className="text-gray-600 truncate">
-              {job.company} - {job.location}
-            </p>
+            <div className="flex items-start gap-4">
+              <div className="flex-1 min-w-0">
+                <h4 className="font-semibold text-lg text-blue-900 line-clamp-2">
+                  {job.title}
+                </h4>
+                <p className="text-gray-600 truncate">
+                  {job.company} - {job.location}
+                </p>
+              </div>
+              {job.img && (
+                <img
+                  src={job.img}
+                  alt={`${job.company} logo`}
+                  className="w-24 h-24 object-contain rounded-md shrink-0"
+                />
+              )}
+            </div>
           </div>
-          {job.img && (
-            <img
-              src={job.img}
-              alt={`${job.company} logo`}
-              className="h-10 w-10 object-contain rounded"
-            />
-          )}
         </div>
 
         <div className="flex gap-2 flex-wrap mt-2">
@@ -69,7 +73,7 @@ export default function JobCard({
           Ứng tuyển
         </button>
         <Link
-          href={`/jobs/${job.id}`}
+          href={`/detailjobs/${job.id}`}
           className="w-full sm:w-auto text-sm text-blue-600 hover:text-blue-800 font-medium text-center bg-blue-50 rounded px-4 py-2"
         >
           Xem chi tiết →

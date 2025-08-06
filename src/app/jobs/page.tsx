@@ -18,7 +18,7 @@ interface Job {
   deadline?: string;
   status: string;
   postedDate: string;
-  image?: string;
+  img?: string;
 }
 
 function ApplyModal({ open, onClose, onSubmit, job }: any) {
@@ -156,16 +156,30 @@ export function AllJobsPageContent() {
             key={job.id}
             className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md p-5 flex flex-col justify-between"
           >
-            <div>
-              <h3 className="text-lg font-semibold text-blue-600 mb-1">{job.title}</h3>
-              <p className="text-sm text-gray-700 mb-1">Công ty: {job.company}</p>
-              <p className="text-sm text-gray-600">Địa điểm: {job.location}</p>
-              <p className="text-sm text-gray-600">Loại hình: {job.type}</p>
-              <p className="text-sm text-gray-600">Lương: {job.salary || "Thỏa thuận"}</p>
-              <p className="text-sm text-gray-400">
-                Đăng ngày: {new Date(job.postedDate).toLocaleDateString("vi-VN")}
-              </p>
-              <p className="mt-2 text-sm text-gray-600 line-clamp-3">{job.description}</p>
+            <div className="flex gap-4 items-start">
+              {/* Bên trái: Thông tin công việc */}
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-blue-600 mb-1">{job.title}</h3>
+                <p className="text-sm text-gray-700 mb-1">Công ty: {job.company}</p>
+                <p className="text-sm text-gray-600">Địa điểm: {job.location}</p>
+                <p className="text-sm text-gray-600">Loại hình: {job.type}</p>
+                <p className="text-sm text-gray-600">Lương: {job.salary || "Thỏa thuận"}</p>
+                <p className="text-sm text-gray-400">
+                  Đăng ngày: {new Date(job.postedDate).toLocaleDateString("vi-VN")}
+                </p>
+                <p className="mt-2 text-sm text-gray-600 line-clamp-3">{job.description}</p>
+              </div>
+
+              {/* Bên phải: Hình ảnh */}
+              {job.img && (
+                <div className="w-24 h-24 bg-white rounded-md shadow-sm overflow-hidden">
+                  <img
+                    src={job.img}
+                    alt={`${job.company} logo`}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+              )}
             </div>
             <button
               onClick={() => handleApply(job)}
