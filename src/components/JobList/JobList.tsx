@@ -18,7 +18,7 @@ export default function JobList({
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null); // ✅ thêm modal control
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null); 
 
   useEffect(() => {
     loadJobs();

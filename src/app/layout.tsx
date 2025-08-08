@@ -15,10 +15,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen bg-gray-100 flex flex-col">
+        {/* Header full width */}
         <Header />
-        <main className="flex-grow container mx-auto px-4 py-8 mt-20">
+
+        {/* Main full width */}
+        <main className="flex-grow w-full mt-20">
           {children}
         </main>
+
+        {/* Footer full width */}
         <Footer />
       </body>
     </html>

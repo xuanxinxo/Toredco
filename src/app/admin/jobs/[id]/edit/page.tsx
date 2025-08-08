@@ -13,6 +13,7 @@ interface JobFormData {
   requirements: string[];
   benefits: string[];
   deadline: string;
+  img?: string;
 }
 
 export default function EditJob() {
@@ -29,23 +30,27 @@ export default function EditJob() {
     description: '',
     requirements: [''],
     benefits: [''],
-    deadline: ''
+    deadline: '',
+    img: '',
   });
+
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    // auth
     const token = localStorage.getItem('adminToken');
     if (!token) {
       router.push('/admin/login');
       return;
     }
-    // load job
-    fetch(`/api/admin/jobs/${id}`, { headers: { 'Authorization': `Bearer ${token}` } })
-      .then(res => res.json())
-      .then(data => {
+
+    fetch(`/api/admin/jobs/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then((data) => {
         if (data.success) {
           const j = data.data;
           setFormData({
@@ -55,9 +60,10 @@ export default function EditJob() {
             type: j.type || 'Full-time',
             salary: j.salary || '',
             description: j.description || '',
-            requirements: j.requirements && j.requirements.length > 0 ? j.requirements : [''],
-            benefits: j.benefits && j.benefits.length > 0 ? j.benefits : [''],
-            deadline: j.deadline || ''
+            requirements: j.requirements?.length ? j.requirements : [''],
+            benefits: j.benefits?.length ? j.benefits : [''],
+            deadline: j.deadline || '',
+            img: j.img || '',
           });
         } else {
           setError(data.message || 'Failed to load job');
@@ -67,45 +73,77 @@ export default function EditJob() {
       .finally(() => setLoading(false));
   }, [id, router]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleArrayChange = (field: 'requirements' | 'benefits', idx: number, val: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: prev[field].map((item, i) => i === idx ? val : item)
+      [field]: prev[field].map((item, i) => (i === idx ? val : item)),
     }));
   };
 
   const addArrayItem = (field: 'requirements' | 'benefits') => {
-    setFormData(prev => ({ ...prev, [field]: [...prev[field], ''] }));
+    setFormData((prev) => ({ ...prev, [field]: [...prev[field], ''] }));
   };
 
   const removeArrayItem = (field: 'requirements' | 'benefits', idx: number) => {
-    setFormData(prev => ({ ...prev, [field]: prev[field].filter((_, i) => i !== idx) }));
+    setFormData((prev) => ({
+      ...prev,
+      [field]: prev[field].filter((_, i) => i !== idx),
+    }));
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setError('');
+
     try {
       const token = localStorage.getItem('adminToken');
+      const form = new FormData();
+
+      form.append('title', formData.title);
+      form.append('company', formData.company);
+      form.append('location', formData.location);
+      form.append('type', formData.type);
+      form.append('salary', formData.salary);
+      form.append('description', formData.description);
+      form.append('deadline', formData.deadline);
+
+      formData.requirements
+        .filter((r) => r.trim())
+        .forEach((req) => form.append('requirements', req));
+
+      formData.benefits
+        .filter((b) => b.trim())
+        .forEach((ben) => form.append('benefits', ben));
+
+      if (selectedImage) {
+        form.append('img', selectedImage);
+      }
+
       const res = await fetch(`/api/admin/jobs/${id}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          ...formData,
-          requirements: formData.requirements.filter(r => r.trim()),
-          benefits: formData.benefits.filter(b => b.trim())
-        })
+        body: form,
       });
+
       const data = await res.json();
+
       if (data.success) {
         router.push('/admin/jobs');
       } else {
@@ -118,7 +156,8 @@ export default function EditJob() {
     }
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (loading)
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-gray-100 py-8">
@@ -127,41 +166,169 @@ export default function EditJob() {
         {error && <div className="text-red-600 mb-4">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 gap-4">
-            <input name="title" value={formData.title} onChange={handleInputChange} required placeholder="Tiêu đề" className="w-full px-3 py-2 border rounded" />
-            <input name="company" value={formData.company} onChange={handleInputChange} required placeholder="Công ty" className="w-full px-3 py-2 border rounded" />
-            <input name="location" value={formData.location} onChange={handleInputChange} required placeholder="Địa điểm" className="w-full px-3 py-2 border rounded" />
-            <select name="type" value={formData.type} onChange={handleInputChange} className="w-full px-3 py-2 border rounded">
+            <input
+              name="title"
+              value={formData.title}
+              onChange={handleInputChange}
+              required
+              placeholder="Tiêu đề"
+              className="w-full px-3 py-2 border rounded"
+            />
+            <input
+              name="company"
+              value={formData.company}
+              onChange={handleInputChange}
+              required
+              placeholder="Công ty"
+              className="w-full px-3 py-2 border rounded"
+            />
+            <input
+              name="location"
+              value={formData.location}
+              onChange={handleInputChange}
+              required
+              placeholder="Địa điểm"
+              className="w-full px-3 py-2 border rounded"
+            />
+            <select
+              name="type"
+              value={formData.type}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border rounded"
+            >
               <option>Full-time</option>
               <option>Part-time</option>
               <option>Contract</option>
             </select>
-            <input name="salary" value={formData.salary} onChange={handleInputChange} placeholder="Lương" className="w-full px-3 py-2 border rounded" />
-            <textarea name="description" value={formData.description} onChange={handleInputChange} rows={4} placeholder="Mô tả" className="w-full px-3 py-2 border rounded" />
+            <input
+              name="salary"
+              value={formData.salary}
+              onChange={handleInputChange}
+              placeholder="Lương"
+              className="w-full px-3 py-2 border rounded"
+            />
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleInputChange}
+              rows={4}
+              placeholder="Mô tả"
+              className="w-full px-3 py-2 border rounded"
+            />
+
+            {/* Image preview and upload */}
+            <div>
+              <label className="font-medium">Hình ảnh</label>
+              {selectedImage ? (
+                <div className="mb-2">
+                  <img
+                    src={URL.createObjectURL(selectedImage)}
+                    alt="Selected Preview"
+                    className="w-40 h-auto rounded"
+                  />
+                </div>
+              ) : formData.img ? (
+                <div className="mb-2">
+                  <img
+                    src={formData.img}
+                    alt="Current Image"
+                    className="w-40 h-auto rounded"
+                  />
+                </div>
+              ) : null}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="w-full px-3 py-2 border rounded"
+              />
+            </div>
+
+            {/* Requirements */}
             <div>
               <label className="font-medium">Yêu cầu</label>
               {formData.requirements.map((req, idx) => (
                 <div key={idx} className="flex items-center mb-2">
-                  <input value={req} onChange={e => handleArrayChange('requirements', idx, e.target.value)} className="flex-1 px-3 py-2 border rounded" />
-                  {formData.requirements.length > 1 && <button type="button" onClick={() => removeArrayItem('requirements', idx)} className="ml-2 text-red-600">Xóa</button>}
+                  <input
+                    value={req}
+                    onChange={(e) => handleArrayChange('requirements', idx, e.target.value)}
+                    className="flex-1 px-3 py-2 border rounded"
+                  />
+                  {formData.requirements.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeArrayItem('requirements', idx)}
+                      className="ml-2 text-red-600"
+                    >
+                      Xóa
+                    </button>
+                  )}
                 </div>
               ))}
-              <button type="button" onClick={() => addArrayItem('requirements')} className="text-blue-600">+ Thêm yêu cầu</button>
+              <button
+                type="button"
+                onClick={() => addArrayItem('requirements')}
+                className="text-blue-600"
+              >
+                + Thêm yêu cầu
+              </button>
             </div>
+
+            {/* Benefits */}
             <div>
               <label className="font-medium">Quyền lợi</label>
               {formData.benefits.map((ben, idx) => (
                 <div key={idx} className="flex items-center mb-2">
-                  <input value={ben} onChange={e => handleArrayChange('benefits', idx, e.target.value)} className="flex-1 px-3 py-2 border rounded" />
-                  {formData.benefits.length > 1 && <button type="button" onClick={() => removeArrayItem('benefits', idx)} className="ml-2 text-red-600">Xóa</button>}
+                  <input
+                    value={ben}
+                    onChange={(e) => handleArrayChange('benefits', idx, e.target.value)}
+                    className="flex-1 px-3 py-2 border rounded"
+                  />
+                  {formData.benefits.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeArrayItem('benefits', idx)}
+                      className="ml-2 text-red-600"
+                    >
+                      Xóa
+                    </button>
+                  )}
                 </div>
               ))}
-              <button type="button" onClick={() => addArrayItem('benefits')} className="text-blue-600">+ Thêm quyền lợi</button>
+              <button
+                type="button"
+                onClick={() => addArrayItem('benefits')}
+                className="text-blue-600"
+              >
+                + Thêm quyền lợi
+              </button>
             </div>
-            <input type="date" name="deadline" value={formData.deadline} onChange={handleInputChange} className="w-full px-3 py-2 border rounded" />
+
+            {/* Deadline */}
+            <input
+              type="date"
+              name="deadline"
+              value={formData.deadline}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border rounded"
+            />
           </div>
+
           <div className="mt-6 flex justify-end space-x-4">
-            <button type="button" onClick={() => router.push('/admin/jobs')} className="px-4 py-2 border rounded">Hủy</button>
-            <button type="submit" disabled={saving} className="px-4 py-2 bg-green-600 text-white rounded disabled:opacity-50">{saving ? 'Đang cập nhật...' : 'Cập nhật'}</button>
+            <button
+              type="button"
+              onClick={() => router.push('/admin/jobs')}
+              className="px-4 py-2 border rounded"
+            >
+              Hủy
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="px-4 py-2 bg-green-600 text-white rounded disabled:opacity-50"
+            >
+              {saving ? 'Đang cập nhật...' : 'Cập nhật'}
+            </button>
           </div>
         </form>
       </div>

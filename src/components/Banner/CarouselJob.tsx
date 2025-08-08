@@ -171,7 +171,7 @@ export default function CarouselJob() {
                     <img
                       src={job.img || "/img/job-icon.svg"}
                       alt="Logo"
-                      className="w-full h-full object-contain bg-white rounded-t-md"
+                      className="w-full h-60 object-contain bg-white rounded-t-md"
                     />
 
                   </div>
@@ -179,11 +179,12 @@ export default function CarouselJob() {
                   <p className="text-gray-700 text-base">{job.company}</p>
                   <p className="text-blue-600 text-base font-medium">{job.salary}</p>
                   <p className="text-sm text-gray-500">{job.location}</p>
+                  <span className="text-gray-500">{new Date(job.postedDate).toLocaleDateString("vi-VN")}</span>
+
                 </div>
 
                 <div className="flex justify-between items-center mt-4 text-xs">
-                  <span className="text-gray-500">{new Date(job.postedDate).toLocaleDateString("vi-VN")}</span>
-                  <div className="flex gap-2 shrink-0">
+                  <div className="flex gap-6 shrink-0">
                     <button
                       onClick={() => handleApplyJob(job)}
                       className="bg-green-500 text-white px-3 py-1.5 rounded hover:bg-green-600 whitespace-nowrap"

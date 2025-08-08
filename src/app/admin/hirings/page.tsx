@@ -1,6 +1,6 @@
-'use client';
+"use client";
 import React, { useEffect, useState } from 'react';
-import Modal from '@/src/components/ui/Modal';
+import Modal from '../../../components/ui/Modal';
 
 interface Hiring {
   id: string;
@@ -29,15 +29,21 @@ export default function AdminHiringPage() {
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState(initialForm);
   const [submitting, setSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null); // 👈 Thêm để biết đang sửa cái nào
 
   useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = () => {
+    setLoading(true);
     fetch('/api/hirings')
       .then(res => res.json())
       .then(data => {
         if (data.success) setHirings(data.data);
         setLoading(false);
       });
-  }, []);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -57,26 +63,43 @@ export default function AdminHiringPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    const res = await fetch('/api/hirings', {
-      method: 'POST',
+
+    const url = editingId ? `/api/hirings/${editingId}` : '/api/hirings';
+    const method = editingId ? 'PUT' : 'POST';
+
+    const res = await fetch(url, {
+      method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
     });
+
     const data = await res.json();
     setSubmitting(false);
+
     if (data.success) {
       setShowModal(false);
       setForm(initialForm);
-      // Reload list
-      setLoading(true);
-      fetch('/api/hirings')
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) setHirings(data.data);
-          setLoading(false);
-        });
+      setEditingId(null); // Reset editing state
+      loadData();
     } else {
-      alert('Đăng Hiring thất bại!');
+      alert(editingId ? 'Cập nhật thất bại!' : 'Đăng Hiring thất bại!');
+    }
+  };
+
+  const handleEdit = (hiring: Hiring) => {
+    setForm({ ...hiring });
+    setEditingId(hiring.id);
+    setShowModal(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Bạn có chắc chắn muốn xóa?')) return;
+    const res = await fetch(`/api/hirings/${id}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.success) {
+      loadData();
+    } else {
+      alert('Xóa thất bại!');
     }
   };
 
@@ -86,13 +109,18 @@ export default function AdminHiringPage() {
         <h1 className="text-2xl font-bold">Quản lý Hiring</h1>
         <button
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          onClick={() => setShowModal(true)}
+          onClick={() => {
+            setForm(initialForm);
+            setEditingId(null);
+            setShowModal(true);
+          }}
         >
           + Đăng Hiring mới
         </button>
       </div>
+
       <Modal open={showModal} onClose={() => setShowModal(false)}>
-        <h2 className="text-lg font-bold mb-4">Đăng Hiring mới</h2>
+        <h2 className="text-lg font-bold mb-4">{editingId ? 'Cập nhật Hiring' : 'Đăng Hiring mới'}</h2>
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input name="title" value={form.title} onChange={handleChange} placeholder="Tiêu đề" className="border p-2 rounded" required />
           <input name="company" value={form.company} onChange={handleChange} placeholder="Công ty" className="border p-2 rounded" required />
@@ -103,7 +131,7 @@ export default function AdminHiringPage() {
           <input type="file" name="img" onChange={handleFileChange} accept="image/*" className="border p-2 rounded" />
           <div className="col-span-2 flex gap-2 mt-2">
             <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" disabled={submitting}>
-              {submitting ? 'Đang đăng...' : 'Đăng Hiring'}
+              {submitting ? (editingId ? 'Đang cập nhật...' : 'Đang đăng...') : (editingId ? 'Cập nhật' : 'Đăng Hiring')}
             </button>
             <button type="button" className="bg-gray-300 px-4 py-2 rounded" onClick={() => setShowModal(false)}>
               Hủy
@@ -111,6 +139,7 @@ export default function AdminHiringPage() {
           </div>
         </form>
       </Modal>
+
       <div className="bg-white rounded-lg shadow overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -127,9 +156,9 @@ export default function AdminHiringPage() {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {loading ? (
-              <tr><td colSpan={7} className="text-center py-4">Đang tải...</td></tr>
+              <tr><td colSpan={8} className="text-center py-4">Đang tải...</td></tr>
             ) : hirings.length === 0 ? (
-              <tr><td colSpan={7} className="text-center py-4">Không có Hiring nào</td></tr>
+              <tr><td colSpan={8} className="text-center py-4">Không có Hiring nào</td></tr>
             ) : (
               hirings.map(hiring => (
                 <tr key={hiring.id} className="hover:bg-gray-50">
@@ -141,8 +170,8 @@ export default function AdminHiringPage() {
                   <td className="px-6 py-4 whitespace-nowrap">{hiring.salary}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{hiring.deadline ? new Date(hiring.deadline).toLocaleDateString() : ''}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <button className="text-blue-600 hover:underline mr-2">Sửa</button>
-                    <button className="text-red-600 hover:underline">Xóa</button>
+                    <button onClick={() => handleEdit(hiring)} className="text-blue-600 hover:underline mr-2">Sửa</button>
+                    <button onClick={() => handleDelete(hiring.id)} className="text-red-600 hover:underline">Xóa</button>
                   </td>
                 </tr>
               ))
@@ -152,4 +181,4 @@ export default function AdminHiringPage() {
       </div>
     </div>
   );
-} 
+}

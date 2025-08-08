@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminFromRequest } from '../../../../../lib/auth';
 import { prisma } from '../../../../../lib/prisma';
+import fs from 'fs/promises';
+import path from 'path';
 
 // GET /api/admin/jobs/[id] - Lấy chi tiết việc làm
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
@@ -28,24 +30,49 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
     const jobId = params.id;
-    const body = await request.json();
-    // Chỉ update các trường hợp lệ
-    const allowedFields = [
-      'title', 'company', 'location', 'type', 'salary', 'description',
-      'requirements', 'benefits', 'deadline', 'status', 'postedDate'
-    ];
-    const data: any = {};
-    for (const key of allowedFields) {
-      if (body[key] !== undefined) {
-        data[key] = body[key];
-      }
+
+    const formData = await request.formData();
+    const title = formData.get('title')?.toString();
+    const company = formData.get('company')?.toString();
+    const location = formData.get('location')?.toString();
+    const type = formData.get('type')?.toString();
+    const salary = formData.get('salary')?.toString();
+    const description = formData.get('description')?.toString();
+    const deadlineStr = formData.get('deadline')?.toString();
+    const requirements = formData.getAll('requirements').map(item => item.toString());
+    const benefits = formData.getAll('benefits').map(item => item.toString());
+
+    let imgUrl: string | undefined;
+    const imgFile = formData.get('img') as File | null;
+    if (imgFile && imgFile instanceof File) {
+      const buffer = Buffer.from(await imgFile.arrayBuffer());
+      const filename = `${Date.now()}_${imgFile.name}`;
+      const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'jobs');
+      await fs.mkdir(uploadDir, { recursive: true });
+      await fs.writeFile(path.join(uploadDir, filename), buffer);
+      imgUrl = `/uploads/jobs/${filename}`;
     }
+
+    const data: any = {};
+    if (title !== undefined) data.title = title;
+    if (company !== undefined) data.company = company;
+    if (location !== undefined) data.location = location;
+    if (type !== undefined) data.type = type;
+    if (salary !== undefined) data.salary = salary;
+    if (description !== undefined) data.description = description;
+    if (deadlineStr) data.deadline = new Date(deadlineStr);
+    if (requirements.length) data.requirements = requirements;
+    if (benefits.length) data.benefits = benefits;
+    if (imgUrl) data.img = imgUrl;
+
     await prisma.job.update({
       where: { id: jobId },
       data,
     });
+
     return NextResponse.json({ success: true, message: 'Job updated successfully' });
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
   }
 }

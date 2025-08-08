@@ -8,6 +8,13 @@ import { Autoplay } from 'swiper/modules';
 const sponsors = [
   '/img/giảnlogo.jpg',
   '/img/cham.jpg',
+  '/img/xui.jpg',
+  '/img/abu.jpg',
+  '/img/dalat.jpg',
+  '/img/epic.jpg',
+  '/img/toredco.jpg',
+
+
 ];
 
 export default function LogoSupport() {
