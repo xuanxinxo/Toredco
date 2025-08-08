@@ -5,32 +5,31 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ApplyModal from '../../../components/ApplyModal';
 
-interface Job {
-  id: number | string;
+interface Hiring {
+  id: string;
   title: string;
   company: string;
   location: string;
   type: string;
   salary: string;
   description: string;
-  requirements?: string[];
-  benefits?: string[];
+  requirements: string[];
+  benefits: string[];
   postedDate: string;
   deadline: string;
-  status: string;
   img?: string;
 }
 
 export default function Detailjobs() {
   const params = useParams();
   const router = useRouter();
-  const [job, setJob] = useState<Job | null>(null);
+  const [job, setJob] = useState<Hiring | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showApplyModal, setShowApplyModal] = useState(false);
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [selectedJob, setSelectedJob] = useState<Hiring | null>(null);
 
-  const handleApplyJob = (job: Job) => {
+  const handleApplyJob = (job: Hiring) => {
     const token =
       typeof window !== 'undefined'
         ? (localStorage.getItem('token') ?? document.cookie.match(/token=([^;]+)/)?.[1] ?? '')
@@ -51,11 +50,12 @@ export default function Detailjobs() {
       try {
         setLoading(true);
         const res = await fetch(`/api/hirings/${params.id}`);
-        const data = await res.json();
-        if (res.ok) {
-          setJob(data);
+        const responseData = await res.json();
+        
+        if (res.ok && responseData.success) {
+          setJob(responseData.data);
         } else {
-          setError(data.error || 'Không tìm thấy việc làm');
+          setError(responseData.message || 'Không tìm thấy việc làm');
         }
       } catch (err) {
         console.error('Lỗi khi tải công việc:', err);

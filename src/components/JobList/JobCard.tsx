@@ -76,19 +76,19 @@ export default function JobCard({
 
       {/* Nút hành động */}
       <div className="flex flex-row gap-3 mt-5">
-  <button
-    onClick={onApply}
-    className="flex-1 text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium"
-  >
-    Ứng tuyển
-  </button>
-  <Link
-    href={`/detailjobs/${job.id}`}
-    className="flex-1 text-sm text-blue-600 hover:text-blue-800 font-medium text-center bg-blue-50 rounded-lg px-4 py-2 transition-colors"
-  >
-    Xem chi tiết →
-  </Link>
-</div>
+        <button
+          onClick={onApply}
+          className="flex-1 text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium"
+        >
+          Ứng tuyển
+        </button>
+        <Link
+          href={`/detailjobs/${job.id}`}
+          className="flex-1 text-sm text-blue-600 hover:text-blue-800 font-medium text-center bg-blue-50 rounded-lg px-4 py-2 transition-colors"
+        >
+          Xem chi tiết →
+        </Link>
+      </div>
 
     </div>
   );

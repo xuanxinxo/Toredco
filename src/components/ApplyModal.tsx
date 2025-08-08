@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-interface Job {
-  id: string | number;
+interface Hiring {
+  id: string;
   title: string;
   company: string;
   location: string;
@@ -15,7 +15,7 @@ interface Job {
 type ApplyModalProps = {
   open: boolean;
   onClose: () => void;
-  job: Job | null;
+  job: Hiring | null;
 };
 
 export default function ApplyModal({ open, onClose, job }: ApplyModalProps) {
@@ -43,7 +43,7 @@ export default function ApplyModal({ open, onClose, job }: ApplyModalProps) {
       const res = await fetch('/api/applications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, jobId: job.id }),
+        body: JSON.stringify({ ...form, hiringId: job.id }),
       });
       const data = await res.json();
       if (data.success) {

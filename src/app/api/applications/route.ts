@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { getUserFromRequest } from "@/src/lib/auth";
 
-export async function POST(req) {
+export async function POST(req: Request) {
   // Kiểm tra đăng nhập
   const user = getUserFromRequest(req);
   if (!user) {
