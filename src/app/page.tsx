@@ -30,7 +30,7 @@ export default function Home() {
 
           {/* 30% */}
           <div className="md:col-span-3">
-            <JobList limit={3} containerClassName="grid gap-2" />
+            <JobList limit={4} containerClassName="grid gap-2" />
           </div>
         </div>
       </div>
