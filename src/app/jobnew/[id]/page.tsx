@@ -74,7 +74,7 @@ export default function JobDetail() {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white shadow-sm border-b mt-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <Link href="/" className="text-blue-600 hover:text-blue-800">
@@ -85,7 +85,7 @@ export default function JobDetail() {
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 ">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           {/* Job Header */}
           <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-8">
@@ -194,7 +194,7 @@ export default function JobDetail() {
 
                 {/* Share */}
                 <div className="bg-gray-50 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Chia sẻ</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Chia sẻsss</h3>
                   <div className="flex space-x-2">
                     <button className="flex-1 bg-blue-600 text-white py-2 px-3 rounded hover:bg-blue-700 transition-colors">
                       Facebook

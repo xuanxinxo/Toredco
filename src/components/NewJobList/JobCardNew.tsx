@@ -86,7 +86,7 @@ export default function JobCardNew({ job }: { job: Job }) {
           Ứng tuyển
         </button>
         <a
-          href={`/jobs/${job.id}`}
+          href={`/jobnew/${job.id}`}
           className="w-full sm:w-auto text-sm text-blue-600 hover:text-blue-800 font-medium text-center bg-blue-50 rounded px-4 py-2"
         >
           Xem chi tiết →
