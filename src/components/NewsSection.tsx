@@ -45,7 +45,7 @@ export default function NewsSection() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        {news.map((item) => (
+        {news.slice(0, 5).map((item) => (
           <div
             key={item._id}
             className="bg-white rounded-xl shadow hover:shadow-md transition-all duration-200"

@@ -65,10 +65,12 @@ function rateLimit(ip: string): boolean {
 // -----------------------------
 export async function POST(req: NextRequest) {
   // 3.1 Only allow JSON
-  if (req.headers.get("content-type") !== "application/json") {
-    return NextResponse.json({ error: "Content‑Type phải là application/json" }, {
-      status: 415,
-    });
+  const contentType = (req.headers.get("content-type") || "").toLowerCase();
+  if (!contentType.includes("application/json")) {
+    return NextResponse.json(
+      { error: "Content‑Type phải là application/json" },
+      { status: 415 }
+    );
   }
 
   // 3.2 Rate‑limit per IP (IPv6‑safe)
@@ -111,6 +113,7 @@ export async function POST(req: NextRequest) {
       email,
       password: hash,
       name,
+      createdAt: new Date(),
     },
     select: {
       id: true,

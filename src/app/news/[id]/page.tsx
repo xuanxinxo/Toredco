@@ -14,7 +14,7 @@ export default async function NewsDetailPage({ params }: Props) {
   const { title, summary, date, image, link } = newsItem as any
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-white rounded shadow">
+    <div className="max-w-3xl mx-auto p-6 bg-white rounded shadow mt-10">
       <h1 className="text-3xl font-bold mb-4">{title}</h1>
       <time className="text-gray-500 mb-4 block">
         {new Date(date).toLocaleDateString('vi-VN')}

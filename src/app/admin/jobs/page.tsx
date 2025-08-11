@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 interface Job {
-  id: number;
+  id: string;
   title: string;
   company: string;
   location: string;
@@ -20,31 +20,26 @@ export default function AdminJobs() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [visibleCount, setVisibleCount] = useState(10);
   const router = useRouter();
 
   useEffect(() => {
-    // Kiểm tra authentication
     const token = localStorage.getItem('adminToken');
     if (!token) {
       router.push('/admin/login');
       return;
     }
-
     loadJobs();
-  }, [router, filter]);
+  }, [filter]); // Không để router vào đây để tránh gọi lại loadJobs nhiều lần
 
   const loadJobs = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('adminToken');
       const response = await fetch(`/api/admin/jobs?status=${filter === 'all' ? '' : filter}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
       });
-
       const data = await response.json();
-      
       if (data.success) {
         setJobs(data.data);
       } else {
@@ -57,23 +52,23 @@ export default function AdminJobs() {
     }
   };
 
-  const handleStatusChange = async (jobId: number, newStatus: string) => {
+  const handleStatusChange = async (jobId: string, newStatus: string) => {
     try {
       const token = localStorage.getItem('adminToken');
       const response = await fetch(`/api/admin/jobs/${jobId}`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ status: newStatus })
       });
-
       const data = await response.json();
-      
       if (data.success) {
-        // Reload jobs sau khi cập nhật
-        loadJobs();
+        // Cập nhật trực tiếp danh sách thay vì load lại toàn bộ
+        setJobs(prev =>
+          prev.map(job => job.id === jobId ? { ...job, status: newStatus } : job)
+        );
       } else {
         alert('Có lỗi xảy ra khi cập nhật trạng thái');
       }
@@ -83,22 +78,17 @@ export default function AdminJobs() {
     }
   };
 
-  const handleDelete = async (jobId: number) => {
+  const handleDelete = async (jobId: string) => {
     if (confirm('Bạn có chắc muốn xóa việc làm này?')) {
       try {
         const token = localStorage.getItem('adminToken');
         const response = await fetch(`/api/admin/jobs/${jobId}`, {
           method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+          headers: { 'Authorization': `Bearer ${token}` }
         });
-
         const data = await response.json();
-        
         if (data.success) {
-          // Reload jobs sau khi xóa
-          loadJobs();
+          setJobs(prev => prev.filter(job => job.id !== jobId));
         } else {
           alert('Có lỗi xảy ra khi xóa việc làm');
         }
@@ -109,10 +99,8 @@ export default function AdminJobs() {
     }
   };
 
-  const filteredJobs = jobs.filter(job => {
-    if (filter === 'all') return true;
-    return job.status === filter;
-  });
+  const filteredJobs = jobs.filter(job => filter === 'all' || job.status === filter);
+  const displayedJobs = filteredJobs.slice(0, visibleCount);
 
   if (loading) {
     return (
@@ -123,7 +111,7 @@ export default function AdminJobs() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 mt-20">
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -132,7 +120,7 @@ export default function AdminJobs() {
               <Link href="/admin" className="text-blue-600 hover:text-blue-800">
                 ← Quay lại Dashboard
               </Link>
-              <h1 className="text-2xl font-bold text-gray-900">Quản lý việc llàm</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Quản lý việc làm</h1>
             </div>
             <Link
               href="/admin/jobs/create"
@@ -147,47 +135,23 @@ export default function AdminJobs() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Filters */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <div className="flex space-x-4">
-            <button
-              onClick={() => setFilter('all')}
-              className={`px-4 py-2 rounded-lg ${
-                filter === 'all'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              Tất cả ({jobs.length})
-            </button>
-            <button
-              onClick={() => setFilter('active')}
-              className={`px-4 py-2 rounded-lg ${
-                filter === 'active'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              Đang hoạt động ({jobs.filter(j => j.status === 'active').length})
-            </button>
-            <button
-              onClick={() => setFilter('pending')}
-              className={`px-4 py-2 rounded-lg ${
-                filter === 'pending'
-                  ? 'bg-yellow-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              Chờ duyệt ({jobs.filter(j => j.status === 'pending').length})
-            </button>
-            <button
-              onClick={() => setFilter('expired')}
-              className={`px-4 py-2 rounded-lg ${
-                filter === 'expired'
-                  ? 'bg-red-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              Hết hạn ({jobs.filter(j => j.status === 'expired').length})
-            </button>
+          <div className="flex space-x-4 overflow-x-auto">
+            {[
+              { key: 'all', label: 'Tất cả', color: 'bg-blue-600', count: jobs.length },
+              { key: 'active', label: 'Đang hoạt động', color: 'bg-green-600', count: jobs.filter(j => j.status === 'active').length },
+              { key: 'pending', label: 'Chờ duyệt', color: 'bg-yellow-600', count: jobs.filter(j => j.status === 'pending').length },
+              { key: 'expired', label: 'Hết hạn', color: 'bg-red-600', count: jobs.filter(j => j.status === 'expired').length },
+            ].map(item => (
+              <button
+                key={item.key}
+                onClick={() => setFilter(item.key)}
+                className={`px-4 py-2 rounded-lg whitespace-nowrap ${
+                  filter === item.key ? `${item.color} text-white` : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                {item.label} ({item.count})
+              </button>
+            ))}
           </div>
         </div>
 
@@ -197,99 +161,56 @@ export default function AdminJobs() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Việc làm
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Công ty
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Địa điểm
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Loại
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Lương
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Trạng thái
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ngày đăng
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Thao tác
-                  </th>
+                  {['Việc làm', 'Công ty', 'Địa điểm', 'Loại', 'Lương', 'Trạng thái', 'Ngày đăng', 'Thao tác'].map(head => (
+                    <th key={head} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{head}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredJobs.length === 0 ? (
+                {displayedJobs.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-4 text-center text-gray-500">
-                      Không có việc làm nào
-                    </td>
+                    <td colSpan={8} className="px-6 py-4 text-center text-gray-500">Không có việc làm nào</td>
                   </tr>
                 ) : (
-                  filteredJobs.map((job) => (
+                  displayedJobs.map((job) => (
                     <tr key={job.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap max-w-[200px] truncate">{job.title}</td>
+                      <td className="px-6 py-4 whitespace-nowrap max-w-[150px] truncate">{job.company}</td>
+                      <td className="px-6 py-4 whitespace-nowrap max-w-[150px] truncate">{job.location}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">
-                            {job.title}
-                          </div>
-                        </div>
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">{job.type}</span>
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap">{job.salary}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{job.company}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{job.location}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                          {job.type}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{job.salary}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            job.status === 'active'
-                              ? 'bg-green-100 text-green-800'
-                              : job.status === 'pending'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}
-                        >
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          job.status === 'active' ? 'bg-green-100 text-green-800' :
+                          job.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
                           {job.status === 'active' ? 'Đang hoạt động' :
                            job.status === 'pending' ? 'Chờ duyệt' : 'Hết hạn'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {new Date(job.postedDate).toLocaleDateString('vi-VN')}
-                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">{new Date(job.postedDate).toLocaleDateString('vi-VN')}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">
                           <Link
                             href={`/admin/jobs/${job.id}/edit`}
-                            className="text-blue-600 hover:text-blue-900"
+                            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md text-xs"
                           >
                             Sửa
                           </Link>
                           {job.status === 'pending' && (
                             <button
                               onClick={() => handleStatusChange(job.id, 'active')}
-                              className="text-green-600 hover:text-green-900"
+                              className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md text-xs"
                             >
                               Duyệt
                             </button>
                           )}
                           <button
                             onClick={() => handleDelete(job.id)}
-                            className="text-red-600 hover:text-red-900"
+                            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-xs"
                           >
                             Xóa
                           </button>
@@ -302,7 +223,19 @@ export default function AdminJobs() {
             </table>
           </div>
         </div>
+
+        {/* Xem thêm */}
+        {visibleCount < filteredJobs.length && (
+          <div className="flex justify-center mt-6">
+            <button
+              onClick={() => setVisibleCount(prev => prev + 10)}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Xem thêm
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
-} 
+}

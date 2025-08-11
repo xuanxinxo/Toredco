@@ -118,7 +118,7 @@ export default function CreateJob() {
     );
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 mt-10">
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-6xl mx-auto px-4 flex items-center h-16">
           <button
