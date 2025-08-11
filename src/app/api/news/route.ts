@@ -24,12 +24,17 @@ export async function POST(request: NextRequest) {
     const imageFile = formData.get('image') as File | null;
     let imageUrl = '';
     if (imageFile) {
-      const buffer = Buffer.from(await imageFile.arrayBuffer());
-      const filename = `${Date.now()}_${imageFile.name}`;
-      const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-      await fs.mkdir(uploadDir, { recursive: true });
-      await fs.writeFile(path.join(uploadDir, filename), buffer);
-      imageUrl = `/uploads/${filename}`;
+      try {
+        const buffer = Buffer.from(await imageFile.arrayBuffer());
+        const filename = `${Date.now()}_${imageFile.name}`;
+        const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+        await fs.mkdir(uploadDir, { recursive: true });
+        await fs.writeFile(path.join(uploadDir, filename), buffer);
+        imageUrl = `/uploads/${filename}`;
+      } catch (err) {
+        console.warn('Skipping local file save (likely read-only FS on server):', err);
+        imageUrl = '';
+      }
     }
 
   if (!title || !summary || !date) {
