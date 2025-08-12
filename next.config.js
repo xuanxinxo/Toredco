@@ -5,6 +5,7 @@ const nextConfig = {
       'media-blog.jobsgo.vn',
       'thanhnien.vn',
       'images2.thanhnien.vn',
+      'res.cloudinary.com',
     ],
   },
   typescript: {

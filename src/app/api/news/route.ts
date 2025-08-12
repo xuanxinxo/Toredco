@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs/promises';
 import path from 'path';
 
 export const runtime = 'nodejs';
-import { connectDB } from '../../../lib/mongodb';
+import { connectDB } from '@/src/lib/mongodb';
 import News from '../../../models/News';
+
+// Cấu hình Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // GET: Trả về danh sách tin tức
 export async function GET() {
@@ -25,15 +33,33 @@ export async function POST(request: NextRequest) {
     let imageUrl = '';
     if (imageFile) {
       try {
+        // Upload lên Cloudinary
         const buffer = Buffer.from(await imageFile.arrayBuffer());
-        const filename = `${Date.now()}_${imageFile.name}`;
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-        await fs.mkdir(uploadDir, { recursive: true });
-        await fs.writeFile(path.join(uploadDir, filename), buffer);
-        imageUrl = `/uploads/${filename}`;
+        const base64Image = buffer.toString('base64');
+        const dataURI = `data:${imageFile.type};base64,${base64Image}`;
+        
+        const result = await cloudinary.uploader.upload(dataURI, {
+          folder: 'news',
+          public_id: `news_${Date.now()}`,
+          overwrite: true,
+        });
+        
+        imageUrl = result.secure_url;
+        console.log('Image uploaded to Cloudinary:', imageUrl);
       } catch (err) {
-        console.warn('Skipping local file save (likely read-only FS on server):', err);
-        imageUrl = '';
+        console.error('Error uploading to Cloudinary:', err);
+        // Fallback: thử lưu local nếu có thể
+        try {
+          const buffer = Buffer.from(await imageFile.arrayBuffer());
+          const filename = `${Date.now()}_${imageFile.name}`;
+          const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+          await fs.mkdir(uploadDir, { recursive: true });
+          await fs.writeFile(path.join(uploadDir, filename), buffer);
+          imageUrl = `/uploads/${filename}`;
+        } catch (localErr) {
+          console.warn('Failed to save image locally:', localErr);
+          imageUrl = '';
+        }
       }
     }
 
