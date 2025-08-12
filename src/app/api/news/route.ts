@@ -24,12 +24,25 @@ export async function GET() {
 // POST: Tạo tin tức mới
 export async function POST(request: NextRequest) {
   try {
-  const formData = await request.formData();
+    console.log('=== CREATE NEWS API CALLED ===');
+    console.log('Cloudinary config check:', {
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? 'SET' : 'NOT SET',
+      api_key: process.env.CLOUDINARY_API_KEY ? 'SET' : 'NOT SET',
+      api_secret: process.env.CLOUDINARY_API_SECRET ? 'SET' : 'NOT SET'
+    });
+    
+    const formData = await request.formData();
     const title = formData.get('title')?.toString() || '';
     const summary = formData.get('summary')?.toString() || '';
     const date = formData.get('date')?.toString() || '';
     const link = formData.get('link')?.toString() || '';
     const imageFile = formData.get('image') as File | null;
+    console.log('Image file received:', imageFile ? {
+      name: imageFile.name,
+      size: imageFile.size,
+      type: imageFile.type
+    } : 'No image file');
+    
     let imageUrl = '';
     if (imageFile) {
       try {
@@ -45,7 +58,7 @@ export async function POST(request: NextRequest) {
         });
         
         imageUrl = result.secure_url;
-        console.log('Image uploaded to Cloudinary:', imageUrl);
+        console.log('✅ Image uploaded to Cloudinary successfully:', imageUrl);
       } catch (err) {
         console.error('Error uploading to Cloudinary:', err);
         // Fallback: thử lưu local nếu có thể
@@ -57,7 +70,7 @@ export async function POST(request: NextRequest) {
           await fs.writeFile(path.join(uploadDir, filename), buffer);
           imageUrl = `/uploads/${filename}`;
         } catch (localErr) {
-          console.warn('Failed to save image locally:', localErr);
+          console.warn('❌ Failed to save image locally:', localErr);
           imageUrl = '';
         }
       }
@@ -67,9 +80,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Thiếu dữ liệu bắt buộc' }, { status: 400 });
   }
 
-  await connectDB();
-      const newItem = await News.create({ title, summary, date, image: imageUrl, link });
-      return NextResponse.json({ success: true, news: newItem });
+    console.log('Final data to save:', { title, summary, date, image: imageUrl, link });
+    
+    await connectDB();
+    const newItem = await News.create({ title, summary, date, image: imageUrl, link });
+    console.log('✅ News created successfully:', newItem);
+    return NextResponse.json({ success: true, news: newItem });
   } catch (error) {
     console.error('Error creating news item:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });

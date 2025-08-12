@@ -53,6 +53,10 @@ export default function EditJob() {
       .then((data) => {
         if (data.success) {
           const j = data.data;
+          const deadlineValue = j?.deadline
+            ? new Date(j.deadline).toISOString().slice(0, 10)
+            : '';
+
           setFormData({
             title: j.title || '',
             company: j.company || '',
@@ -60,9 +64,9 @@ export default function EditJob() {
             type: j.type || 'Full-time',
             salary: j.salary || '',
             description: j.description || '',
-            requirements: j.requirements?.length ? j.requirements : [''],
-            benefits: j.benefits?.length ? j.benefits : [''],
-            deadline: j.deadline || '',
+            requirements: Array.isArray(j.requirements) && j.requirements.length ? j.requirements : [''],
+            benefits: Array.isArray(j.benefits) && j.benefits.length ? j.benefits : [''],
+            deadline: deadlineValue,
             img: j.img || '',
           });
         } else {
@@ -126,9 +130,15 @@ export default function EditJob() {
         .filter((r) => r.trim())
         .forEach((req) => form.append('requirements', req));
 
+      // Đánh dấu là client đã gửi trường requirements để server có thể cập nhật mảng rỗng
+      form.append('requirementsPresent', '1');
+
       formData.benefits
         .filter((b) => b.trim())
         .forEach((ben) => form.append('benefits', ben));
+
+      // Đánh dấu là client đã gửi trường benefits để server có thể cập nhật mảng rỗng
+      form.append('benefitsPresent', '1');
 
       if (selectedImage) {
         form.append('img', selectedImage);

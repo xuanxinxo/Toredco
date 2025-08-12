@@ -39,6 +39,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const salary = formData.get('salary')?.toString();
     const description = formData.get('description')?.toString();
     const deadlineStr = formData.get('deadline')?.toString();
+    const requirementsPresent = formData.get('requirementsPresent');
+    const benefitsPresent = formData.get('benefitsPresent');
     const requirements = formData.getAll('requirements').map(item => item.toString());
     const benefits = formData.getAll('benefits').map(item => item.toString());
 
@@ -61,8 +63,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     if (salary !== undefined) data.salary = salary;
     if (description !== undefined) data.description = description;
     if (deadlineStr) data.deadline = new Date(deadlineStr);
-    if (requirements.length) data.requirements = requirements;
-    if (benefits.length) data.benefits = benefits;
+    if (requirementsPresent !== null) data.requirements = requirements; // cho phép cập nhật mảng rỗng
+    if (benefitsPresent !== null) data.benefits = benefits; // cho phép cập nhật mảng rỗng
     if (imgUrl) data.img = imgUrl;
 
     await prisma.job.update({
@@ -106,7 +108,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     const body = await request.json();
     const allowedFields = [
       'title', 'company', 'location', 'type', 'salary', 'description',
-      'requirements', 'benefits', 'deadline', 'status', 'postedDate'
+      'requirements', 'benefits', 'deadline', 'status', 'postedDate', 'img'
     ];
     const data: any = {};
     for (const key of allowedFields) {
