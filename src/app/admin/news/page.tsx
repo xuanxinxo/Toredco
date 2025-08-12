@@ -239,10 +239,18 @@ function EditNewsModal({
         }
       } else {
         // Nếu không có ảnh mới, chỉ cập nhật text
-        onUpdate({
-          ...news,
-          ...formData
+        const response = await fetch(`/api/news/${news._id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
         });
+        
+        if (response.ok) {
+          const result = await response.json();
+          onUpdate(result.news);
+        } else {
+          alert('Có lỗi xảy ra khi cập nhật tin tức');
+        }
       }
     } catch (error) {
       console.error('Error updating news:', error);
