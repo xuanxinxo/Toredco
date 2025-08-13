@@ -1,14 +1,14 @@
 import { notFound } from 'next/navigation'
-import { connectDB } from '../../../lib/mongodb'
-import News from '../../../models/News'
+import { prisma } from '@/src/lib/prisma'
 import Image from 'next/image'
 import Link from 'next/link'
 
 type Props = { params: { id: string } }
 
 export default async function NewsDetailPage({ params }: Props) {
-  await connectDB()
-  const newsItem = await News.findById(params.id).lean()
+  const newsItem = await prisma.news.findUnique({
+    where: { id: params.id }
+  })
   if (!newsItem) notFound()
 
   const { title, summary, date, image, link } = newsItem as any

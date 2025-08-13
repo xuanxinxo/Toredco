@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import HiringFilter from './HiringFilter';
+import HiringFilter from '../HiringFilter';
 import ApplyForm from './ApplyForm';
 
 export function HiringList() {

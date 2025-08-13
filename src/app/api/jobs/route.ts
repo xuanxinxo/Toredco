@@ -10,20 +10,25 @@ export async function GET(request: NextRequest) {
     const type = searchParams.get('type') || '';
     const location = searchParams.get('location') || '';
 
-    console.log('Fetching jobs with params:', { page, limit, search, type, location });
+    if (page < 1 || limit < 1) {
+      return NextResponse.json(
+        { error: 'Invalid pagination parameters' },
+        { status: 400 }
+      );
+    }
 
     const skip = (page - 1) * limit;
 
-    // Xây dựng điều kiện tìm kiếm
+    // Build search conditions
     const where: any = {
       status: 'active'
     };
 
     if (search) {
       where.OR = [
-        { title: { contains: search } },
-        { company: { contains: search } },
-        { description: { contains: search } }
+        { title: { contains: search, mode: 'insensitive' } },
+        { company: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } }
       ];
     }
 
@@ -32,22 +37,35 @@ export async function GET(request: NextRequest) {
     }
 
     if (location) {
-      where.location = { contains: location };
+      where.location = { contains: location, mode: 'insensitive' };
     }
 
-    // Lấy tổng số việc làm
-    const totalJobs = await prisma.job.count({ where });
+    // Use Prisma's findMany with count
+    const [jobs, totalJobs] = await Promise.all([
+      prisma.job.findMany({
+        where,
+        orderBy: { postedDate: 'desc' },
+        skip,
+        take: limit,
+        select: {
+          id: true,
+          title: true,
+          company: true,
+          location: true,
+          type: true,
+          salary: true,
+          description: true,
+          requirements: true,
+          benefits: true,
+          deadline: true,
+          status: true,
+          postedDate: true,
+          img: true
+        }
+      }),
+      prisma.job.count({ where })
+    ]);
 
-    // Lấy danh sách việc làm với phân trang
-    const jobs = await prisma.job.findMany({
-      where,
-      orderBy: { postedDate: 'desc' },
-      skip,
-      take: limit,
-    });
-
-    console.log(`Found ${jobs.length} jobs out of ${totalJobs} total`);
-    
     return NextResponse.json({
       jobs,
       pagination: {

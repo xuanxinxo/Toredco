@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/src/lib/prisma';
 import { v2 as cloudinary } from 'cloudinary';
-import fs from 'fs/promises';
-import path from 'path';
-
-export const runtime = 'nodejs';
-import { connectDB } from '@/src/lib/mongodb';
-import News from '../../../models/News';
+import { Readable } from 'stream';
 
 // Cấu hình Cloudinary
 cloudinary.config({
@@ -14,93 +10,78 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// GET: Trả về danh sách tin tức
+// Hàm upload stream Cloudinary dạng Promise
+function uploadToCloudinary(fileBuffer: Buffer, folder: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { folder, resource_type: 'image' },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result.secure_url);
+      }
+    );
+    Readable.from(fileBuffer).pipe(uploadStream);
+  });
+}
+
+// GET: Lấy danh sách tin tức
 export async function GET() {
-  await connectDB();
-  const newsData = await News.find().sort({ date: -1 });
-  return NextResponse.json({ news: newsData });
+  try {
+    const news = await prisma.news.findMany({
+      orderBy: { date: 'desc' },
+    });
+    return NextResponse.json({ news });
+  } catch (err) {
+    return NextResponse.json({ error: 'Failed to fetch news' }, { status: 500 });
+  }
 }
 
 // POST: Tạo tin tức mới
 export async function POST(request: NextRequest) {
   try {
-    console.log('=== CREATE NEWS API CALLED ===');
-    console.log('Cloudinary config check:', {
-      cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? 'SET' : 'NOT SET',
-      api_key: process.env.CLOUDINARY_API_KEY ? 'SET' : 'NOT SET',
-      api_secret: process.env.CLOUDINARY_API_SECRET ? 'SET' : 'NOT SET'
-    });
-    
     const formData = await request.formData();
     const title = formData.get('title')?.toString() || '';
     const summary = formData.get('summary')?.toString() || '';
     const date = formData.get('date')?.toString() || '';
     const link = formData.get('link')?.toString() || '';
     const imageFile = formData.get('image') as File | null;
-    console.log('Image file received:', imageFile ? {
-      name: imageFile.name,
-      size: imageFile.size,
-      type: imageFile.type
-    } : 'No image file');
-    
-    let imageUrl = '';
-    if (imageFile) {
-      try {
-        // Upload lên Cloudinary
-        const buffer = Buffer.from(await imageFile.arrayBuffer());
-        const base64Image = buffer.toString('base64');
-        const dataURI = `data:${imageFile.type};base64,${base64Image}`;
-        
-        const result = await cloudinary.uploader.upload(dataURI, {
-          folder: 'news',
-          public_id: `news_${Date.now()}`,
-          overwrite: true,
-        });
-        
-        imageUrl = result.secure_url;
-        console.log('✅ Image uploaded to Cloudinary successfully:', imageUrl);
-      } catch (err) {
-        console.error('Error uploading to Cloudinary:', err);
-        // Fallback: thử lưu local nếu có thể
-        try {
-          const buffer = Buffer.from(await imageFile.arrayBuffer());
-          const filename = `${Date.now()}_${imageFile.name}`;
-          const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-          await fs.mkdir(uploadDir, { recursive: true });
-          await fs.writeFile(path.join(uploadDir, filename), buffer);
-          imageUrl = `/uploads/${filename}`;
-        } catch (localErr) {
-          console.warn('❌ Failed to save image locally:', localErr);
-          imageUrl = '';
-        }
-      }
+
+    if (!title || !summary || !date) {
+      return NextResponse.json({ error: 'Thiếu dữ liệu bắt buộc' }, { status: 400 });
     }
 
-  if (!title || !summary || !date) {
-    return NextResponse.json({ error: 'Thiếu dữ liệu bắt buộc' }, { status: 400 });
-  }
+    let imageUrl = '';
+    if (imageFile) {
+      const buffer = Buffer.from(await imageFile.arrayBuffer());
+      imageUrl = await uploadToCloudinary(buffer, 'news');
+    }
 
-    console.log('Final data to save:', { title, summary, date, image: imageUrl, link });
-    
-    await connectDB();
-    const newItem = await News.create({ title, summary, date, image: imageUrl, link });
-    console.log('✅ News created successfully:', newItem);
-    return NextResponse.json({ success: true, news: newItem });
+    const newsItem = await prisma.news.create({
+      data: {
+        title,
+        summary,
+        date,
+        link,
+        image: imageUrl,
+        v: 0,
+      },
+    });
+
+    return NextResponse.json(newsItem, { status: 201 });
   } catch (error) {
     console.error('Error creating news item:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
 
-// DELETE: Xoá tin tức theo ID
+// DELETE: Xóa tin tức
 export async function DELETE(request: NextRequest) {
-  const { id } = await request.json();
-
-  if (!id) {
-    return NextResponse.json({ error: 'Thiếu ID' }, { status: 400 });
+  try {
+    const { id } = await request.json();
+    await prisma.news.delete({ where: { id } });
+    return NextResponse.json({ message: 'Tin tức đã được xóa' });
+  } catch (error) {
+    console.error('Error deleting news:', error);
+    return NextResponse.json({ error: 'Failed to delete news' }, { status: 500 });
   }
-
-  await connectDB();
-  await News.findByIdAndDelete(id);
-  return NextResponse.json({ success: true });
 }

@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 import React, { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
-interface Job {
+export interface Job {
   id: string;
   title: string;
   company: string;
@@ -18,7 +18,7 @@ interface Job {
   deadline?: string;
   status: string;
   postedDate: string;
-  img?: string;
+  img: string | null;
 }
 
 function ApplyModal({ open, onClose, onSubmit, job }: any) {
