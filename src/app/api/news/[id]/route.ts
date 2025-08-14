@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/src/lib/mongodb';
 import News from '@/src/models/News';
 
+
 // PUT: Cập nhật tin tức
 export async function PUT(
   request: NextRequest,

@@ -1,8 +1,8 @@
 "use client";
 
-import { Job } from "@/src/app/types/job";
-import JobCard from "@/src/components/JobList/JobCard";
-import JobApplyModal from "@/src/components/JobApplyModal"; // nhớ import
+import { Job } from "@/types/job";
+import JobCard from "./JobCard";
+import JobApplyModal from "../JobApplyModal"; // nhớ import
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
