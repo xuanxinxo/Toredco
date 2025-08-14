@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 
+
 interface NewsAttrs {
   title: string;
   summary: string;

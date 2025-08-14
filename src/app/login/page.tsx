@@ -3,8 +3,17 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { SuspenseBoundary } from '@/src/components/SuspenseBoundary';
 
 export default function LoginPage() {
+  return (
+    <SuspenseBoundary>
+      <LoginContent />
+    </SuspenseBoundary>
+  );
+}
+
+function LoginContent() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);

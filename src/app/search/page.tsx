@@ -4,8 +4,18 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import type { Job } from "../jobs/page";
+// import { SuspenseBoundary } from "./components/SuspenseBoundary";
+import { SuspenseBoundary } from "@/src/components/SuspenseBoundary";
 
 export default function SearchResultsPage() {
+  return (
+    <SuspenseBoundary>
+      <SearchContent />
+    </SuspenseBoundary>
+  );
+}
+
+function SearchContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
