@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { debounce } from 'lodash';
 
 
@@ -16,6 +16,13 @@ export default function JobSearch({ provinces }: JobSearchProps) {
   const [error, setError] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const router = useRouter();
+  const pathname = usePathname();
+
+  // Reset loading and close suggestions when route changes
+  useEffect(() => {
+    if (searching) setSearching(false);
+    if (suggestions.length) setSuggestions([]);
+  }, [pathname]);
 
   // Fetch suggestions (debounced)
   const fetchSuggestions = useMemo(
@@ -28,6 +35,7 @@ export default function JobSearch({ provinces }: JobSearchProps) {
         const params = new URLSearchParams();
         params.set('search', q);
         params.set('limit', '8');
+        params.set('searchType', 'title');
         const res = await fetch(`/api/jobs?${params.toString()}`, { cache: 'no-store' });
         const data = await res.json();
         const titles = Array.isArray(data.jobs)
@@ -71,7 +79,10 @@ export default function JobSearch({ provinces }: JobSearchProps) {
       setError('');
 
       const params = new URLSearchParams();
-      if (titleToSearch) params.append('search', titleToSearch);
+      if (titleToSearch) {
+        params.append('search', titleToSearch);
+        params.append('searchType', 'title');
+      }
       if (opts?.exact) params.append('exact', '1');
       if (selectedProvince) params.append('location', selectedProvince);
 
@@ -117,6 +128,10 @@ export default function JobSearch({ provinces }: JobSearchProps) {
                 e.preventDefault();
                 handleSearch();
               }
+            }}
+            onBlur={() => {
+              // Delay to allow click selection from dropdown
+              setTimeout(() => setSuggestions([]), 120);
             }}
             placeholder="Nhập tên công việc (ví dụ: nhân viên phục vụ)"
             className="px-4 py-2 border border-gray-200 rounded w-full bg-transparent focus:outline-none"
