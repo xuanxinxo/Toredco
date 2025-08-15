@@ -1,9 +1,14 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/src/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/candidates
 export async function GET() {
   try {
+    if (!process.env.MONGODB_URI) {
+      return NextResponse.json({ success: true, data: [] });
+    }
     const candidates = await prisma.application.findMany({
       orderBy: { createdAt: 'desc' },
     });

@@ -54,7 +54,7 @@ function ApplyModal({ open, onClose, onSubmit, job }: any) {
   );
 }
 
-function FilteredJobsPage() {
+function FilteredJobsPageContent() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -143,7 +143,7 @@ function FilteredJobsPage() {
       phone: (form.phone as any).value,
       cv: (form.cv as any).value,
       message: (form.message as any).value,
-      jobId: applyModal.job.id,
+      jobId: applyModal.job!.id,
     };
     const res = await fetch("/api/applications", {
       method: "POST",
@@ -240,4 +240,10 @@ function FilteredJobsPage() {
   );
 }
 
-export default FilteredJobsPage;
+export default function FilteredJobsPage() {
+  return (
+    <Suspense fallback={<div>Đang tải việc làm...</div>}> 
+      <FilteredJobsPageContent />
+    </Suspense>
+  );
+}

@@ -3,6 +3,8 @@ import { prisma } from '@/src/lib/prisma';
 import { v2 as cloudinary } from 'cloudinary';
 import { Readable } from 'stream';
 
+export const dynamic = 'force-dynamic';
+
 // Cấu hình Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -27,6 +29,9 @@ function uploadToCloudinary(fileBuffer: Buffer, folder: string): Promise<string>
 // GET: Lấy danh sách tin tức
 export async function GET() {
   try {
+    if (!process.env.MONGODB_URI) {
+      return NextResponse.json({ news: [] });
+    }
     const news = await prisma.news.findMany({
       orderBy: { date: 'desc' },
     });
@@ -39,6 +44,9 @@ export async function GET() {
 // POST: Tạo tin tức mới
 export async function POST(request: NextRequest) {
   try {
+    if (!process.env.MONGODB_URI) {
+      return NextResponse.json({ error: 'Database is not configured' }, { status: 500 });
+    }
     const formData = await request.formData();
     const title = formData.get('title')?.toString() || '';
     const summary = formData.get('summary')?.toString() || '';
@@ -77,6 +85,9 @@ export async function POST(request: NextRequest) {
 // DELETE: Xóa tin tức
 export async function DELETE(request: NextRequest) {
   try {
+    if (!process.env.MONGODB_URI) {
+      return NextResponse.json({ error: 'Database is not configured' }, { status: 500 });
+    }
     const { id } = await request.json();
     await prisma.news.delete({ where: { id } });
     return NextResponse.json({ message: 'Tin tức đã được xóa' });

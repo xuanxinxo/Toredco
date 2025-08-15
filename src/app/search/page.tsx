@@ -17,8 +17,9 @@ function SearchContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const jobTitle = searchParams.get("jobTitle") || "";
-  const province = searchParams.get("province") || "";
+  const jobTitle = searchParams.get("search") || searchParams.get("jobTitle") || "";
+  const province = searchParams.get("location") || searchParams.get("province") || "";
+  const exact = searchParams.get("exact") === "1";
 
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,8 +68,9 @@ function SearchContent() {
       try {
         const params = new URLSearchParams();
         if (jobTitle) {
-          params.append("jobTitle", jobTitle);
+          params.append("search", jobTitle);
           params.append("searchType", "title");
+          if (exact) params.append("exact", "1");
         }
         if (province) params.append("location", province);
 
@@ -104,7 +106,7 @@ function SearchContent() {
     };
 
     fetchJobs();
-  }, [jobTitle, province]);
+  }, [jobTitle, province, exact]);
 
   return (
     <div className="max-w-6xl mx-auto py-10">
