@@ -1,9 +1,14 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/hirings - lấy danh sách tuyển dụng
 export async function GET() {
   try {
+    if (!process.env.MONGODB_URI) {
+      return NextResponse.json({ success: true, data: [] });
+    }
     const data = await prisma.hiring.findMany({
       orderBy: { postedDate: 'desc' },
     });
@@ -20,6 +25,9 @@ export async function GET() {
 // POST /api/hirings - thêm tin tuyển dụng (dùng trong admin)
 export async function POST(req: Request) {
   try {
+    if (!process.env.MONGODB_URI) {
+      return NextResponse.json({ success: false, message: 'Database is not configured' }, { status: 500 });
+    }
     const body = await req.json();
 
     const {

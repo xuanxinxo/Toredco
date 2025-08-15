@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/src/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -15,6 +17,10 @@ export async function GET(request: NextRequest) {
         { error: 'Invalid pagination parameters' },
         { status: 400 }
       );
+    }
+
+    if (!process.env.MONGODB_URI) {
+      return NextResponse.json({ jobs: [], pagination: { page, limit, total: 0, totalPages: 0 } });
     }
 
     const skip = (page - 1) * limit;
@@ -98,6 +104,10 @@ export async function POST(req: NextRequest) {
     // Validate required fields
     if (!title || !company || !location || !type || !salary || !description || !deadline) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    if (!process.env.MONGODB_URI) {
+      return NextResponse.json({ error: 'Database is not configured' }, { status: 500 });
     }
 
     const job = await prisma.job.create({

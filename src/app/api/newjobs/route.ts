@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/src/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
-    console.log('MONGODB_URI:', process.env.MONGODB_URI);
+    if (!process.env.MONGODB_URI) {
+      return NextResponse.json({ jobs: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 0 } });
+    }
 
     const searchParams = request.nextUrl.searchParams;
 
@@ -12,8 +16,6 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search') || '';
     const type = searchParams.get('type') || '';
     const location = searchParams.get('location') || '';
-
-    console.log('Fetching newjobs with params:', { page, limit, search, type, location });
 
     const skip = (page - 1) * limit;
 
@@ -45,8 +47,6 @@ export async function GET(request: NextRequest) {
       take: limit,
       orderBy: { postedDate: 'desc' },
     });
-
-    console.log(`Found ${jobs.length} newjobs out of ${totalJobs} total`);
 
     return NextResponse.json({
       jobs,

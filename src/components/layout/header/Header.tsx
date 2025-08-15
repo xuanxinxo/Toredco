@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import JobSearch from './JobSearch';
@@ -144,7 +145,9 @@ export default function Header() {
           </div>
 
           {/* Auth Modal for first-time visitors */}
-          <AuthModal isOpen={showAuthModal} />
+          <Suspense fallback={null}>
+            <AuthModal isOpen={showAuthModal} />
+          </Suspense>
         </div>
       </nav>
     </header>

@@ -2,13 +2,19 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { prisma } from '@/src/lib/prisma';
 
+export const dynamic = 'force-dynamic';
 export const revalidate = 60;
 
 async function getNews() {
-  const news = await prisma.news.findMany({
-    orderBy: { date: 'desc' },
-  });
-  return news;
+  if (!process.env.MONGODB_URI) return [];
+  try {
+    const news = await prisma.news.findMany({
+      orderBy: { date: 'desc' },
+    });
+    return news;
+  } catch {
+    return [];
+  }
 }
 
 export default async function NewsListPage() {
