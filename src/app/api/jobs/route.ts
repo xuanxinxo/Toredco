@@ -11,6 +11,8 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search') || '';
     const type = searchParams.get('type') || '';
     const location = searchParams.get('location') || '';
+    const searchType = (searchParams.get('searchType') || '').toLowerCase();
+    const isExact = searchParams.get('exact') === '1' || searchParams.get('exact') === 'true';
 
     if (page < 1 || limit < 1) {
       return NextResponse.json(
@@ -31,11 +33,22 @@ export async function GET(request: NextRequest) {
     };
 
     if (search) {
-      where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { company: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } }
-      ];
+      if (searchType === 'title') {
+        // Only search in title
+        where.title = isExact
+          ? { equals: search, mode: 'insensitive' }
+          : { startsWith: search, mode: 'insensitive' };
+      } else {
+        // Default: search across multiple fields
+        const stringFilter = isExact
+          ? { equals: search, mode: 'insensitive' }
+          : { contains: search, mode: 'insensitive' };
+        where.OR = [
+          { title: stringFilter },
+          { company: stringFilter },
+          { description: stringFilter }
+        ];
+      }
     }
 
     if (type) {
