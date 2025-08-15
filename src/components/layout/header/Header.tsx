@@ -10,6 +10,8 @@ import { provinces } from './data';
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -23,128 +25,154 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
-    // Kiểm tra xem người dùng đã truy cập trang web trước đó chưa
     const hasVisited = localStorage.getItem('hasVisited');
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    const isLoggedInFlag = localStorage.getItem('isLoggedIn');
     const currentPath = window.location.pathname;
     const hasCompletedAuth = localStorage.getItem('hasCompletedAuth');
 
-    // Nếu chưa truy cập và chưa đăng nhập, hiển thị modal đăng ký
-    if (!hasVisited && !isLoggedIn && !hasCompletedAuth && !currentPath.startsWith('/register') && !currentPath.startsWith('/login')) {
+    if (!hasVisited && isLoggedInFlag !== 'true' && !hasCompletedAuth && !currentPath.startsWith('/register') && !currentPath.startsWith('/login')) {
       setShowAuthModal(true);
       localStorage.setItem('hasVisited', 'true');
     }
 
-    // Nếu đã truy cập nhưng chưa đăng nhập và chưa hoàn thành auth, vẫn hiển thị modal
-    if (hasVisited && !isLoggedIn && !hasCompletedAuth && !currentPath.startsWith('/register') && !currentPath.startsWith('/login')) {
+    if (hasVisited && isLoggedInFlag !== 'true' && !hasCompletedAuth && !currentPath.startsWith('/register') && !currentPath.startsWith('/login')) {
       setShowAuthModal(true);
     }
-
-    // Kiểm tra trạng thái đăng nhập mỗi giây
-    const checkLoginStatus = () => {
-      const isLoggedInNow = localStorage.getItem('isLoggedIn');
-      if (isLoggedInNow === 'true') {
-        setShowAuthModal(false);
-        // Đánh dấu là đã hoàn thành quá trình đăng nhập
-        localStorage.setItem('hasCompletedAuth', 'true');
-      }
-    };
-
-    const interval = setInterval(checkLoginStatus, 1000);
-    return () => clearInterval(interval);
   }, []);
 
-  // Close auth modal when route changes
   useEffect(() => {
-    const handleRouteChange = () => {
-      setShowAuthModal(false);
+    const updateLoginState = () => {
+      const token = localStorage.getItem('token');
+      const flag = localStorage.getItem('isLoggedIn') === 'true';
+      setIsLoggedIn(!!token || flag);
     };
+    updateLoginState();
+    window.addEventListener('storage', updateLoginState);
+    return () => window.removeEventListener('storage', updateLoginState);
+  }, []);
 
-    // Listen for route changes
-    router.refresh();
-    return () => {
-      // Cleanup on unmount
-    };
-  }, [router]);
+  useEffect(() => {
+    setShowAuthModal(false);
+    setIsMenuOpen(false);
+  }, [pathname]);
 
-  const provinces = [
-    'Hà Nội', 'Hà Giang', 'Cao Bằng', 'Lạng Sơn', 'Tuyên Quang', 'Lào Cai', 'Yên Bái', 'Sơn La', 'Điện Biên',
-    'Lai Châu', 'Phú Thọ', 'Vĩnh Phúc', 'Bắc Giang', 'Quảng Ninh', 'Bắc Kạn', 'Thái Nguyên', 'Lạng Sơn',
-    'Hải Dương', 'Hải Phòng', 'Quảng Ninh', 'Thái Bình', 'Nam Định', 'Ninh Bình', 'Thanh Hóa', 'Nghệ An',
-    'Hà Tĩnh', 'Quảng Bình', 'Quảng Trị', 'Thừa Thiên Huế', 'Đà Nẵng', 'Quảng Nam', 'Quảng Ngãi', 'Bình Định',
-    'Phú Yên', 'Khánh Hòa', 'Ninh Thuận', 'Bình Thuận', 'Kon Tum', 'Gia Lai', 'Đắk Lắk', 'Đắk Nông',
-    'Lâm Đồng', 'Bình Phước', 'Bình Dương', 'Đồng Nai', 'Bà Rịa - Vũng Tàu', 'TP. Hồ Chí Minh', 'Long An',
-    'Tiền Giang', 'Bến Tre', 'Vĩnh Long', 'Đồng Tháp', 'An Giang', 'Kiên Giang', 'Cà Mau', 'Sóc Trăng',
-    'Bạc Liêu', 'Trà Vinh', 'Hậu Giang'
-  ];
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {}
+    localStorage.removeItem('token');
+    localStorage.setItem('isLoggedIn', 'false');
+    router.push('/');
+  };
+
+  const isActive = (href: string) => {
+    if (href === '/') return pathname === '/';
+    return pathname === href || pathname.startsWith(href);
+  };
+
+  const linkBase = isScrolled ? 'text-gray-700 hover:text-blue-900' : 'text-gray-200 hover:text-white';
+  const activeClasses = 'font-semibold underline underline-offset-8 decoration-2';
 
   return (
-    <header className={`fixed w-full top-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white shadow-lg' : 'bg-gradient-to-r from-blue-900 to-blue-800'
-      }`}>
+    <header className={`fixed w-full top-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white shadow-lg' : 'bg-gradient-to-r from-blue-900 to-blue-800'}`}>
       <nav className="container mx-auto px-4 py-4">
         <div className="flex flex-col md:flex-row justify-between items-center">
-          {/* Logo */}
-          <Link href="/" className="flex flex-col items-start mb-4 md:mb-0">
-            <h1 className={`text-4xl font-extrabold tracking-widest ${isScrolled ? 'text-blue-900' : 'text-white'
-              } transition-colors duration-300`}>
-              VIECLAB
-            </h1>
-            <p className={`text-base font-semibold uppercase tracking-wide ${isScrolled ? 'text-blue-800' : 'text-white'
-              }`}>
-              Powered By <span className="font-bold">TOREDCO</span>
-            </p>
-            <p className={`text-sm ${isScrolled ? 'text-blue-700' : 'text-white'
-              }`}>
-              Nền Tảng Kết Nối Minh Bạch
-            </p>
-          </Link>
+          {/* Logo + Mobile toggle */}
+          <div className="flex w-full md:w-auto items-center justify-between mb-4 md:mb-0">
+            <Link href="/" className="flex flex-col items-start">
+              <h1 className={`text-4xl font-extrabold tracking-widest ${isScrolled ? 'text-blue-900' : 'text-white'} transition-colors duration-300`}>
+                VIECLAB
+              </h1>
+              <p className={`text-base font-semibold uppercase tracking-wide ${isScrolled ? 'text-blue-800' : 'text-white'}`}>
+                Powered By <span className="font-bold">TOREDCO</span>
+              </p>
+              <p className={`text-sm ${isScrolled ? 'text-blue-700' : 'text-white'}`}>
+                Nền Tảng Kết Nối Minh Bạch
+              </p>
+            </Link>
+            <button
+              className={`md:hidden px-3 py-2 rounded ${isScrolled ? 'text-blue-900' : 'text-white'} border border-transparent hover:border-current`}
+              onClick={() => setIsMenuOpen(v => !v)}
+              aria-label="Toggle menu"
+              aria-expanded={isMenuOpen}
+            >
+              <span className="text-2xl">☰</span>
+            </button>
+          </div>
 
-          {/* Navigation Links */}
-          {/* <div className="flex flex-wrap justify-center gap-6 mb-4 md:mb-0">
-            <Link href="/jobs" className={`nav-link ${isScrolled ? 'text-gray-700 hover:text-blue-900' : 'text-gray-200 hover:text-white'
-              } transition-colors duration-300 relative group`}>
+          {/* Desktop nav */}
+          <div className="hidden md:flex flex-wrap justify-center gap-6 mb-4 md:mb-0">
+            <Link href="/jobs" className={`${linkBase} transition-colors duration-300 relative ${isActive('/jobs') ? activeClasses : ''}`}>
               Tìm việc làm
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-current transition-all duration-300 group-hover:w-full"></span>
             </Link>
-            <Link href="/hiring" className={`nav-link ${isScrolled ? 'text-gray-700 hover:text-blue-900' : 'text-gray-200 hover:text-white'
-              } transition-colors duration-300 relative group`}>
-              Tìm người làm
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-current transition-all duration-300 group-hover:w-full"></span>
+            <Link href="/jobnew" className={`${linkBase} transition-colors duration-300 relative ${isActive('/jobnew') ? activeClasses : ''}`}>
+              Việc mới
             </Link>
-            <Link href="/post-job" className={`nav-link ${isScrolled ? 'text-gray-700 hover:text-blue-900' : 'text-gray-200 hover:text-white'
-              } transition-colors duration-300 relative group`}>
-              Đăng việc
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-current transition-all duration-300 group-hover:w-full"></span>
+            <Link href="/hirings" className={`${linkBase} transition-colors duration-300 relative ${isActive('/hirings') ? activeClasses : ''}`}>
+              Tuyển dụng
             </Link>
-            <Link href="/reviews" className={`nav-link ${isScrolled ? 'text-gray-700 hover:text-blue-900' : 'text-gray-200 hover:text-white'
-              } transition-colors duration-300 relative group`}>
-              Đánh giá
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-current transition-all duration-300 group-hover:w-full"></span>
-            </Link>
-          </div> */}
-
-          {/* Job Search */}
-          <div className="flex gap-4">
-            <JobSearch provinces={provinces} />
-            <Link href="/login">
-              <button className={`px-6 py-2 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 ${isScrolled
-                ? 'bg-blue-900 text-white hover:bg-blue-800'
-                : 'bg-white text-blue-900 hover:bg-gray-100'
-                }`}>
-                Đăng nhập
-              </button>
-            </Link>
-            <Link href="/register">
-              <button className={`px-6 py-2 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 ${isScrolled
-                ? 'border-2 border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white'
-                : 'border-2 border-white text-white hover:bg-white hover:text-blue-900'
-                }`}>
-                Đăng ký
-              </button>
+            <Link href="/news" className={`${linkBase} transition-colors duration-300 relative ${isActive('/news') ? activeClasses : ''}`}>
+              Tin tức
             </Link>
           </div>
 
-          {/* Auth Modal for first-time visitors */}
+          {/* Search + actions */}
+          <div className="flex items-center gap-4 w-full md:w-auto">
+            <div className="flex-1 md:flex-none">
+              <JobSearch provinces={provinces} />
+            </div>
+
+            {isLoggedIn ? (
+              <div className="flex gap-3">
+                <Link href="/admin">
+                  <button className={`px-5 py-2 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 ${isScrolled ? 'bg-blue-900 text-white hover:bg-blue-800' : 'bg-white text-blue-900 hover:bg-gray-100'}`}>
+                    Quản trị
+                  </button>
+                </Link>
+                <button onClick={handleLogout} className={`px-5 py-2 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 ${isScrolled ? 'border-2 border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white' : 'border-2 border-white text-white hover:bg-white hover:text-blue-900'}`}>
+                  Đăng xuất
+                </button>
+              </div>
+            ) : (
+              <>
+                <Link href="/login">
+                  <button className={`px-6 py-2 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 ${isScrolled ? 'bg-blue-900 text-white hover:bg-blue-800' : 'bg-white text-blue-900 hover:bg-gray-100'}`}>
+                    Đăng nhập
+                  </button>
+                </Link>
+                <Link href="/register">
+                  <button className={`px-6 py-2 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 ${isScrolled ? 'border-2 border-blue-900 text-blue-900 hover:bg-blue-900 hover:text-white' : 'border-2 border-white text-white hover:bg-white hover:text-blue-900'}`}>
+                    Đăng ký
+                  </button>
+                </Link>
+              </>
+            )}
+          </div>
+
+          {/* Mobile menu */}
+          {isMenuOpen && (
+            <div className="md:hidden mt-4 w-full">
+              <div className="flex flex-col gap-3">
+                <Link href="/jobs" onClick={() => setIsMenuOpen(false)} className="text-white">Tìm việc làm</Link>
+                <Link href="/jobnew" onClick={() => setIsMenuOpen(false)} className="text-white">Việc mới</Link>
+                <Link href="/hirings" onClick={() => setIsMenuOpen(false)} className="text-white">Tuyển dụng</Link>
+                <Link href="/news" onClick={() => setIsMenuOpen(false)} className="text-white">Tin tức</Link>
+                {isLoggedIn ? (
+                  <>
+                    <Link href="/admin" onClick={() => setIsMenuOpen(false)} className="text-white">Quản trị</Link>
+                    <button onClick={() => { setIsMenuOpen(false); handleLogout(); }} className="text-left text-white">Đăng xuất</button>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/login" onClick={() => setIsMenuOpen(false)} className="text-white">Đăng nhập</Link>
+                    <Link href="/register" onClick={() => setIsMenuOpen(false)} className="text-white">Đăng ký</Link>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* First-visit auth modal */}
           <Suspense fallback={null}>
             <AuthModal isOpen={showAuthModal} />
           </Suspense>
