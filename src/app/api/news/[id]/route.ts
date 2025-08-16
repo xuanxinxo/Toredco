@@ -9,6 +9,14 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+function canUseCloudinary(): boolean {
+  return Boolean(
+    process.env.CLOUDINARY_CLOUD_NAME &&
+    process.env.CLOUDINARY_API_KEY &&
+    process.env.CLOUDINARY_API_SECRET
+  );
+}
+
 function uploadToCloudinary(fileBuffer: Buffer, folder: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
@@ -20,6 +28,16 @@ function uploadToCloudinary(fileBuffer: Buffer, folder: string): Promise<string>
     );
     Readable.from(fileBuffer).pipe(uploadStream);
   });
+}
+
+async function saveLocal(fileBuffer: Buffer, originalName: string): Promise<string> {
+  const fs = await import('fs/promises');
+  const path = await import('path');
+  const filename = `${Date.now()}_${originalName}`;
+  const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+  await fs.mkdir(uploadDir, { recursive: true });
+  await fs.writeFile(path.join(uploadDir, filename), fileBuffer);
+  return `/uploads/${filename}`;
 }
 
 // PUT: Cập nhật tin tức
@@ -46,7 +64,15 @@ export async function PUT(
       const imageFile = formData.get('image') as File | null;
       if (imageFile) {
         const buffer = Buffer.from(await imageFile.arrayBuffer());
-        imageUrl = await uploadToCloudinary(buffer, 'news');
+        if (canUseCloudinary()) {
+          try {
+            imageUrl = await uploadToCloudinary(buffer, 'news');
+          } catch {
+            imageUrl = await saveLocal(buffer, imageFile.name);
+          }
+        } else {
+          imageUrl = await saveLocal(buffer, imageFile.name);
+        }
       }
     } else {
       const body = await request.json();
