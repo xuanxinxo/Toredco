@@ -19,6 +19,9 @@ export default function AdminNews() {
   const [loading, setLoading] = useState(true);
   const [editingNews, setEditingNews] = useState<NewsItem | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(12);
+  const [total, setTotal] = useState(0);
   const router = useRouter();
 
   useEffect(() => {
@@ -27,16 +30,18 @@ export default function AdminNews() {
       router.push('/admin/login');
       return;
     }
-    loadNews();
+    loadNews(1);
   }, []);
 
-  const loadNews = async () => {
+  const loadNews = async (pageToLoad = page) => {
     try {
       setLoading(true);
-      const response = await fetch('/api/news');
+      const response = await fetch(`/api/news?page=${pageToLoad}&limit=${pageSize}`);
       const data = await response.json();
       if (data.news) {
         setNews(data.news);
+        setTotal(data.total || 0);
+        setPage(data.page || pageToLoad);
       }
     } catch (error) {
       console.error('Error loading news:', error);
@@ -174,6 +179,27 @@ export default function AdminNews() {
         {news.length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">Chưa có tin tức nào</p>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {total > pageSize && (
+          <div className="flex items-center justify-center space-x-3 mt-8">
+            <button
+              className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+              disabled={page <= 1}
+              onClick={() => loadNews(page - 1)}
+            >
+              Trước
+            </button>
+            <span className="text-sm text-gray-600">Trang {page} / {Math.ceil(total / pageSize)}</span>
+            <button
+              className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+              disabled={page >= Math.ceil(total / pageSize)}
+              onClick={() => loadNews(page + 1)}
+            >
+              Sau
+            </button>
           </div>
         )}
       </div>

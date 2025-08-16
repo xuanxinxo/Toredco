@@ -43,12 +43,24 @@ async function saveLocal(fileBuffer: Buffer, originalName: string): Promise<stri
 }
 
 // GET: Lấy danh sách tin tức
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const news = await prisma.news.findMany({
-      orderBy: { date: 'desc' },
-    });
-    return NextResponse.json({ news });
+    const search = request.nextUrl.searchParams;
+    const page = Math.max(parseInt(search.get('page') || '1', 10), 1);
+    const pageSize = Math.min(Math.max(parseInt(search.get('limit') || '12', 10), 1), 100);
+    const skip = (page - 1) * pageSize;
+
+    const [news, total] = await Promise.all([
+      prisma.news.findMany({
+        orderBy: { date: 'desc' },
+        skip,
+        take: pageSize,
+        select: { id: true, title: true, summary: true, date: true, link: true, image: true },
+      }),
+      prisma.news.count(),
+    ]);
+
+    return NextResponse.json({ news, total, page, pageSize });
   } catch (err) {
     return NextResponse.json({ error: 'Failed to fetch news' }, { status: 500 });
   }
