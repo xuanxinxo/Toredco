@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
 interface NewsItem {
-  _id: string;
+  id: string;
   title: string;
   summary: string;
   date: string;
@@ -55,7 +55,7 @@ export default function AdminNews() {
         });
         
         if (response.ok) {
-          setNews(prev => prev.filter(item => item._id !== newsId));
+          setNews(prev => prev.filter(item => item.id !== newsId));
           alert('Xóa tin tức thành công!');
         } else {
           alert('Có lỗi xảy ra khi xóa tin tức');
@@ -76,7 +76,7 @@ export default function AdminNews() {
     try {
       // Cập nhật state ngay lập tức để UI responsive
       setNews(prev => prev.map(item => 
-        item._id === updatedNews._id ? updatedNews : item
+        item.id === updatedNews.id ? updatedNews : item
       ));
       setShowEditModal(false);
       setEditingNews(null);
@@ -121,7 +121,7 @@ export default function AdminNews() {
         {/* News Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {news.map((item) => (
-            <div key={item._id} className="bg-white rounded-lg shadow-md overflow-hidden">
+            <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden">
               {item.image && (
                 <div className="relative h-48 w-full">
                   <Image
@@ -160,7 +160,7 @@ export default function AdminNews() {
                     Sửa
                   </button>
                   <button
-                    onClick={() => handleDelete(item._id)}
+                    onClick={() => handleDelete(item.id)}
                     className="flex-1 bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-md text-sm"
                   >
                     Xóa
@@ -226,7 +226,7 @@ function EditNewsModal({
         formDataToSend.append('link', formData.link);
         formDataToSend.append('image', imageFile);
         
-        const response = await fetch(`/api/news/${news._id}`, {
+        const response = await fetch(`/api/news/${news.id}`, {
           method: 'PUT',
           body: formDataToSend,
         });
@@ -239,7 +239,7 @@ function EditNewsModal({
         }
       } else {
         // Nếu không có ảnh mới, chỉ cập nhật text
-        const response = await fetch(`/api/news/${news._id}`, {
+        const response = await fetch(`/api/news/${news.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
