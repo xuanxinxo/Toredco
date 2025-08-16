@@ -10,6 +10,14 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+function canUseCloudinary(): boolean {
+  return Boolean(
+    process.env.CLOUDINARY_CLOUD_NAME &&
+    process.env.CLOUDINARY_API_KEY &&
+    process.env.CLOUDINARY_API_SECRET
+  );
+}
+
 // Hàm upload stream Cloudinary dạng Promise
 function uploadToCloudinary(fileBuffer: Buffer, folder: string): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -24,13 +32,35 @@ function uploadToCloudinary(fileBuffer: Buffer, folder: string): Promise<string>
   });
 }
 
+async function saveLocal(fileBuffer: Buffer, originalName: string): Promise<string> {
+  const fs = await import('fs/promises');
+  const path = await import('path');
+  const filename = `${Date.now()}_${originalName}`;
+  const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+  await fs.mkdir(uploadDir, { recursive: true });
+  await fs.writeFile(path.join(uploadDir, filename), fileBuffer);
+  return `/uploads/${filename}`;
+}
+
 // GET: Lấy danh sách tin tức
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const news = await prisma.news.findMany({
-      orderBy: { date: 'desc' },
-    });
-    return NextResponse.json({ news });
+    const search = request.nextUrl.searchParams;
+    const page = Math.max(parseInt(search.get('page') || '1', 10), 1);
+    const pageSize = Math.min(Math.max(parseInt(search.get('limit') || '12', 10), 1), 100);
+    const skip = (page - 1) * pageSize;
+
+    const [news, total] = await Promise.all([
+      prisma.news.findMany({
+        orderBy: { date: 'desc' },
+        skip,
+        take: pageSize,
+        select: { id: true, title: true, summary: true, date: true, link: true, image: true },
+      }),
+      prisma.news.count(),
+    ]);
+
+    return NextResponse.json({ news, total, page, pageSize });
   } catch (err) {
     return NextResponse.json({ error: 'Failed to fetch news' }, { status: 500 });
   }
@@ -53,7 +83,15 @@ export async function POST(request: NextRequest) {
     let imageUrl = '';
     if (imageFile) {
       const buffer = Buffer.from(await imageFile.arrayBuffer());
-      imageUrl = await uploadToCloudinary(buffer, 'news');
+      if (canUseCloudinary()) {
+        try {
+          imageUrl = await uploadToCloudinary(buffer, 'news');
+        } catch {
+          imageUrl = await saveLocal(buffer, imageFile.name);
+        }
+      } else {
+        imageUrl = await saveLocal(buffer, imageFile.name);
+      }
     }
 
     const newsItem = await prisma.news.create({
