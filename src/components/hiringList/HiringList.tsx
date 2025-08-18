@@ -36,7 +36,7 @@ export function HiringList() {
   if (error) return <div className="text-center py-20 text-red-600">{error}</div>;
 
   return (
-    <section className="w-full bg-white py-16">
+    <section className="w-full bg-white">
       <div className="w-full px-4 sm:px-6 lg:px-12">
         {/* Tiêu đề */}
         <div className="mb-12">

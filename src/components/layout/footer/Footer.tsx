@@ -3,7 +3,7 @@ import Image from 'next/image';
 
 const Footer = () => {
   return (
-    <footer className="bg-blue-900 text-white pt-10 pb-5 px-4 md:px-16 text-sm">
+    <footer id="footer" className="bg-blue-900 text-white pt-10 pb-5 px-4 md:px-16 text-sm">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Cột 1: Thông tin công ty */}
         <div>

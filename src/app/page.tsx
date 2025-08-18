@@ -16,7 +16,7 @@ export default function Home() {
   return (
     <>
       {/* Hero Section */}
-      <div className="mb-12 px-4 md:px-6 lg:px-8">
+      <div className="mb-10 px-4 md:px-6 lg:px-8">
         <HeroSection />
       </div>
 

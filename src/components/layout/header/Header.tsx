@@ -99,28 +99,59 @@ export default function Header() {
           </Link>
 
           {/* Navigation Links */}
-          {/* <div className="flex flex-wrap justify-center gap-6 mb-4 md:mb-0">
-            <Link href="/jobs" className={`nav-link ${isScrolled ? 'text-gray-700 hover:text-blue-900' : 'text-gray-200 hover:text-white'
-              } transition-colors duration-300 relative group`}>
+          <div className="flex flex-wrap justify-center gap-8 mb-4 md:mb-0">
+            <Link
+              href="/jobs"
+              className={`nav-link ${isScrolled
+                  ? "text-gray-700 hover:text-blue-400"
+                  : "text-gray-200 hover:text-blue-300"
+                } transition-colors duration-300 relative group`}
+            >
               Tìm việc làm
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-current transition-all duration-300 group-hover:w-full"></span>
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-400 transition-all duration-300 group-hover:w-1/2"></span>
             </Link>
-            <Link href="/hiring" className={`nav-link ${isScrolled ? 'text-gray-700 hover:text-blue-900' : 'text-gray-200 hover:text-white'
-              } transition-colors duration-300 relative group`}>
+
+            <Link
+              href="/hirings"
+              className={`nav-link ${isScrolled
+                  ? "text-gray-700 hover:text-blue-400"
+                  : "text-gray-200 hover:text-blue-300"
+                } transition-colors duration-300 relative group`}
+            >
               Tìm người làm
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-current transition-all duration-300 group-hover:w-full"></span>
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-400 transition-all duration-300 group-hover:w-1/2"></span>
             </Link>
-            <Link href="/post-job" className={`nav-link ${isScrolled ? 'text-gray-700 hover:text-blue-900' : 'text-gray-200 hover:text-white'
-              } transition-colors duration-300 relative group`}>
-              Đăng việc
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-current transition-all duration-300 group-hover:w-full"></span>
-            </Link>
-            <Link href="/reviews" className={`nav-link ${isScrolled ? 'text-gray-700 hover:text-blue-900' : 'text-gray-200 hover:text-white'
-              } transition-colors duration-300 relative group`}>
+
+            <a
+              href="#footer"
+              onClick={(e) => {
+                e.preventDefault();
+                const footer = document.getElementById("footer");
+                if (footer) {
+                  footer.scrollIntoView({ behavior: "smooth" });
+                  window.history.pushState(null, "", "#footer");
+                }
+              }}
+              className={`nav-link ${isScrolled
+                  ? "text-gray-700 hover:text-blue-400"
+                  : "text-gray-200 hover:text-blue-300"
+                } transition-colors duration-300 relative group cursor-pointer`}
+            >
+              Liên hệ
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-400 transition-all duration-300 group-hover:w-1/2"></span>
+            </a>
+
+            {/* <Link
+              href="/reviews"
+              className={`nav-link ${isScrolled
+                  ? "text-gray-700 hover:text-blue-400"
+                  : "text-gray-200 hover:text-blue-300"
+                } transition-colors duration-300 relative group`}
+            >
               Đánh giá
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-current transition-all duration-300 group-hover:w-full"></span>
-            </Link>
-          </div> */}
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-400 transition-all duration-300 group-hover:w-1/2"></span>
+            </Link> */}
+          </div>
 
           {/* Job Search */}
           <div className="flex gap-4">
