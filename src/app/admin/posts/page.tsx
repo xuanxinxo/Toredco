@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, FormEvent } from 'react';
+export const dynamic = "force-dynamic";
+
 
 interface Post {
   id: string;

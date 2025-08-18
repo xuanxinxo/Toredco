@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/src/lib/prisma';
+import { connectDB } from '@/src/lib/mongodb';
+import { News } from '@/src/models/News';
 import { v2 as cloudinary } from 'cloudinary';
 import { Readable } from 'stream';
 
@@ -17,6 +18,9 @@ function uploadToCloudinary(fileBuffer: Buffer, folder: string): Promise<string>
       { folder, resource_type: 'image' },
       (error, result) => {
         if (error) return reject(error);
+        if (!result?.secure_url) {
+          return reject(new Error('Không thể tải lên hình ảnh lên Cloudinary'));
+        }
         resolve(result.secure_url);
       }
     );
@@ -27,12 +31,15 @@ function uploadToCloudinary(fileBuffer: Buffer, folder: string): Promise<string>
 // GET: Lấy danh sách tin tức
 export async function GET() {
   try {
-    const news = await prisma.news.findMany({
-      orderBy: { date: 'desc' },
-    });
+    await connectDB();
+    const news = await News.find().sort({ date: -1 });
     return NextResponse.json({ news });
   } catch (err) {
-    return NextResponse.json({ error: 'Failed to fetch news' }, { status: 500 });
+    console.error('Error fetching news:', err);
+    return NextResponse.json(
+      { error: 'Có lỗi xảy ra khi tải danh sách tin tức' },
+      { status: 500 }
+    );
   }
 }
 
@@ -47,30 +54,48 @@ export async function POST(request: NextRequest) {
     const imageFile = formData.get('image') as File | null;
 
     if (!title || !summary || !date) {
-      return NextResponse.json({ error: 'Thiếu dữ liệu bắt buộc' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Thiếu dữ liệu bắt buộc' },
+        { status: 400 }
+      );
     }
 
     let imageUrl = '';
-    if (imageFile) {
-      const buffer = Buffer.from(await imageFile.arrayBuffer());
-      imageUrl = await uploadToCloudinary(buffer, 'news');
+    if (imageFile && imageFile.size > 0) {
+      try {
+        const buffer = Buffer.from(await imageFile.arrayBuffer());
+        imageUrl = await uploadToCloudinary(buffer, 'news');
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        return NextResponse.json(
+          { error: 'Lỗi khi tải lên hình ảnh' },
+          { status: 500 }
+        );
+      }
     }
 
-    const newsItem = await prisma.news.create({
-      data: {
-        title,
-        summary,
-        date,
-        link,
-        image: imageUrl,
-        v: 0,
-      },
+    await connectDB();
+    
+    const newsItem = new News({
+      title,
+      summary,
+      date,
+      link: link || undefined,
+      image: imageUrl || undefined,
     });
 
-    return NextResponse.json(newsItem, { status: 201 });
+    await newsItem.save();
+
+    return NextResponse.json(
+      { success: true, news: newsItem },
+      { status: 201 }
+    );
   } catch (error) {
     console.error('Error creating news item:', error);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Có lỗi xảy ra khi tạo tin tức mới' },
+      { status: 500 }
+    );
   }
 }
 
@@ -78,10 +103,35 @@ export async function POST(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const { id } = await request.json();
-    await prisma.news.delete({ where: { id } });
-    return NextResponse.json({ message: 'Tin tức đã được xóa' });
+    
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Thiếu ID tin tức' },
+        { status: 400 }
+      );
+    }
+    
+    await connectDB();
+    
+    const deletedNews = await News.findByIdAndDelete(id);
+    
+    if (!deletedNews) {
+      return NextResponse.json(
+        { error: 'Không tìm thấy tin tức để xóa' },
+        { status: 404 }
+      );
+    }
+    
+    return NextResponse.json({ 
+      success: true,
+      message: 'Tin tức đã được xóa thành công' 
+    });
+    
   } catch (error) {
     console.error('Error deleting news:', error);
-    return NextResponse.json({ error: 'Failed to delete news' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Có lỗi xảy ra khi xóa tin tức' },
+      { status: 500 }
+    );
   }
 }

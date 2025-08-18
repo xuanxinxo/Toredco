@@ -3,6 +3,7 @@ import { getAdminFromRequest } from '../../../../../lib/auth';
 import { prisma } from '../../../../../lib/prisma';
 import fs from 'fs/promises';
 import path from 'path';
+export const dynamic = "force-dynamic";
 
 // GET /api/admin/jobs/[id] - Lấy chi tiết việc làm
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {

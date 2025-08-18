@@ -6,7 +6,8 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
 interface NewsItem {
-  _id: string;
+  _id?: string;
+  id?: string;
   title: string;
   summary: string;
   date: string;
@@ -19,6 +20,7 @@ export default function AdminNews() {
   const [loading, setLoading] = useState(true);
   const [editingNews, setEditingNews] = useState<NewsItem | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -45,8 +47,14 @@ export default function AdminNews() {
     }
   };
 
-  const handleDelete = async (newsId: string) => {
+  const handleDelete = async (newsId: string | undefined) => {
+    if (!newsId) {
+      setError('Không tìm thấy ID tin tức để xóa');
+      return;
+    }
+    
     if (confirm('Bạn có chắc muốn xóa tin tức này?')) {
+      setError(null);
       try {
         const response = await fetch('/api/news', {
           method: 'DELETE',
@@ -54,30 +62,39 @@ export default function AdminNews() {
           body: JSON.stringify({ id: newsId })
         });
         
+        const result = await response.json();
+        
         if (response.ok) {
-          setNews(prev => prev.filter(item => item._id !== newsId));
+          // Refresh the news list to reflect the deletion
+          await loadNews();
           alert('Xóa tin tức thành công!');
         } else {
-          alert('Có lỗi xảy ra khi xóa tin tức');
+          setError(result.error || 'Có lỗi xảy ra khi xóa tin tức');
         }
       } catch (error) {
         console.error('Error deleting news:', error);
-        alert('Có lỗi xảy ra khi xóa tin tức');
+        setError('Không thể xóa tin tức. Vui lòng thử lại sau.');
       }
     }
   };
 
   const handleEdit = (news: NewsItem) => {
-    setEditingNews(news);
+    // Make sure we have a valid ID before showing the edit modal
+    if (!news._id && !(news as any).id) {
+      setError('Không thể chỉnh sửa tin tức: Thiếu ID');
+      return;
+    }
+    setEditingNews({
+      ...news,
+      _id: news._id || (news as any).id // Ensure _id is always set
+    });
     setShowEditModal(true);
   };
 
   const handleUpdate = async (updatedNews: NewsItem) => {
     try {
-      // Cập nhật state ngay lập tức để UI responsive
-      setNews(prev => prev.map(item => 
-        item._id === updatedNews._id ? updatedNews : item
-      ));
+      // Refresh the news list to get the latest data
+      await loadNews();
       setShowEditModal(false);
       setEditingNews(null);
       alert('Cập nhật tin tức thành công!');
@@ -86,6 +103,16 @@ export default function AdminNews() {
       alert('Có lỗi xảy ra khi cập nhật tin tức');
     }
   };
+
+  // Auto-hide error after 5 seconds
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   if (loading) {
     return (
@@ -118,6 +145,18 @@ export default function AdminNews() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong className="font-bold">Lỗi! </strong>
+            <span className="block sm:inline">{error}</span>
+            <button 
+              className="absolute top-0 bottom-0 right-0 px-4 py-3"
+              onClick={() => setError(null)}
+            >
+              <span className="text-red-700">×</span>
+            </button>
+          </div>
+        )}
         {/* News Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {news.map((item) => (
@@ -211,50 +250,81 @@ function EditNewsModal({
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     
     try {
+      // Debug log to see the news object
+      console.log('News object in handleSubmit:', news);
+      
+      // Get the ID from either _id or id field
+      const newsId = news._id || (news as any).id;
+      
+      if (!newsId) {
+        throw new Error('Không tìm thấy ID tin tức');
+      }
+      
+      console.log('Using news ID:', newsId);
+      console.log('Image file:', imageFile);
+      
+      let response;
+      
       if (imageFile) {
-        // Nếu có ảnh mới, upload trước
+        // If there's a new image, send FormData
         const formDataToSend = new FormData();
         formDataToSend.append('title', formData.title);
         formDataToSend.append('summary', formData.summary);
         formDataToSend.append('date', formData.date);
-        formDataToSend.append('link', formData.link);
+        if (formData.link) {
+          formDataToSend.append('link', formData.link);
+        }
         formDataToSend.append('image', imageFile);
         
-        const response = await fetch(`/api/news/${news._id}`, {
+        console.log('Sending FormData with image...');
+        console.log('FormData entries:');
+        for (let [key, value] of formDataToSend.entries()) {
+          console.log(key, value);
+        }
+        
+        response = await fetch(`/api/news/${encodeURIComponent(newsId)}`, {
           method: 'PUT',
           body: formDataToSend,
+          // Note: Don't set Content-Type header, let the browser set it with the correct boundary
         });
-        
-        if (response.ok) {
-          const result = await response.json();
-          onUpdate(result.news);
-        } else {
-          alert('Có lỗi xảy ra khi cập nhật tin tức');
-        }
       } else {
-        // Nếu không có ảnh mới, chỉ cập nhật text
-        const response = await fetch(`/api/news/${news._id}`, {
+        // If no new image, just update text
+        console.log('Sending JSON data...');
+        response = await fetch(`/api/news/${encodeURIComponent(newsId)}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
+          body: JSON.stringify({
+            ...formData,
+            ...(formData.link && { link: formData.link })
+          })
         });
-        
-        if (response.ok) {
-          const result = await response.json();
-          onUpdate(result.news);
-        } else {
-          alert('Có lỗi xảy ra khi cập nhật tin tức');
-        }
       }
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        console.error('Error response:', result);
+        const errorMessage = result.error || 'Có lỗi xảy ra khi cập nhật tin tức';
+        setError(errorMessage);
+        throw new Error(errorMessage);
+      }
+      
+      // Nếu cập nhật thành công
+      console.log('Update successful:', result);
+      onUpdate(result.news);
+      onClose();
     } catch (error) {
       console.error('Error updating news:', error);
-      alert('Có lỗi xảy ra khi cập nhật tin tức');
+      const errorMessage = error instanceof Error ? error.message : 'Có lỗi xảy ra khi cập nhật tin tức';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -273,6 +343,19 @@ function EditNewsModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      {error && (
+        <div className="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50">
+          <div className="flex justify-between items-center">
+            <span>{error}</span>
+            <button 
+              onClick={() => setError(null)}
+              className="ml-4 text-red-700 font-bold"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
       <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
         <h2 className="text-xl font-bold mb-4">Sửa tin tức</h2>
         <form onSubmit={handleSubmit} className="space-y-4">

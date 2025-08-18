@@ -477,45 +477,6 @@ export default function AdminDashboard() {
           </Link>
         </div>
 
-        
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Hoạt động gần đây
-            </h3>
-          </div>
-          <div className="p-6">
-            <div className="space-y-4">
-              <div className="flex items-center space-x-4">
-                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm text-gray-900">
-                    Việc làm mới được đăng: "Nhân viên bán hàng"
-                  </p>
-                  <p className="text-xs text-gray-500">2 giờ trước</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-4">
-                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm text-gray-900">
-                    Freelancer mới đăng ký: Nguyễn Văn A
-                  </p>
-                  <p className="text-xs text-gray-500">4 giờ trước</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-4">
-                <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm text-gray-900">
-                    Đánh giá mới từ: Mai H.
-                  </p>
-                  <p className="text-xs text-gray-500">6 giờ trước</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
       </div>
     </div>

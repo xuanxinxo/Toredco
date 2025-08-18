@@ -17,12 +17,13 @@ function SearchContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const jobTitle = searchParams.get("jobTitle") || "";
-  const province = searchParams.get("province") || "";
+  const jobTitle = searchParams.get("search") || "";
+  const province = searchParams.get("location") || "";
 
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showNoJobsMessage, setShowNoJobsMessage] = useState(false);
   const [applyModal, setApplyModal] = useState<{ open: boolean; job: Job | null }>({
     open: false,
     job: null,
@@ -32,12 +33,13 @@ function SearchContent() {
   const handleApplySubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
+    const formData = new FormData(form);
     const data = {
-      name: (form.name as HTMLInputElement).value,
-      email: (form.email as HTMLInputElement).value,
-      phone: (form.phone as HTMLInputElement).value,
-      cv: (form.cv as HTMLInputElement).value,
-      message: (form.message as HTMLTextAreaElement).value,
+      name: formData.get('name') as string,
+      email: formData.get('email') as string,
+      phone: formData.get('phone') as string,
+      cv: formData.get('cv') as string,
+      message: formData.get('message') as string,
       jobId: applyModal.job?.id,
     };
 
@@ -63,12 +65,12 @@ function SearchContent() {
     const fetchJobs = async () => {
       setLoading(true);
       setError("");
+      setShowNoJobsMessage(false);
 
       try {
         const params = new URLSearchParams();
         if (jobTitle) {
-          params.append("jobTitle", jobTitle);
-          params.append("searchType", "title");
+          params.append("search", jobTitle);
         }
         if (province) params.append("location", province);
 
@@ -78,6 +80,7 @@ function SearchContent() {
         const text = await res.text();
         if (!text) {
           setJobs([]);
+          setShowNoJobsMessage(true);
           return;
         }
 
@@ -88,16 +91,20 @@ function SearchContent() {
           throw new Error("Dữ liệu trả về không hợp lệ");
         }
 
-        if (!data.jobs || !Array.isArray(data.jobs)) {
+        if (!data.jobs || !Array.isArray(data.jobs) || data.jobs.length === 0) {
           setJobs([]);
+          setShowNoJobsMessage(true);
           return;
         }
 
         setJobs(data.jobs);
+        setShowNoJobsMessage(false);
       } catch (err) {
         console.error("Error fetching jobs:", err);
-        setError(err instanceof Error ? err.message : "Đã xảy ra lỗi không xác định");
+        const errorMessage = err instanceof Error ? err.message : "Đã xảy ra lỗi không xác định";
+        setError(errorMessage);
         setJobs([]);
+        setShowNoJobsMessage(true);
       } finally {
         setLoading(false);
       }
@@ -105,6 +112,13 @@ function SearchContent() {
 
     fetchJobs();
   }, [jobTitle, province]);
+
+  // Clear the no jobs message when navigating away
+  useEffect(() => {
+    return () => {
+      setShowNoJobsMessage(false);
+    };
+  }, []);
 
   return (
     <div className="max-w-6xl mx-auto py-10">

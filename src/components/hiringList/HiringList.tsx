@@ -59,7 +59,10 @@ export function HiringList() {
                   )}
                   <h4 className="text-xl font-bold text-gray-800 mb-2">{candidate.name}</h4>
                   <p className="text-sm text-gray-600 mb-1">📧 Email: {candidate.email}</p>
-                  <p className="text-sm text-gray-600 mb-3">📞 Phone: {candidate.phone}</p>
+                  <p className="text-sm text-gray-600 mb-3">
+                    📞 Phone: {candidate.phone ? candidate.phone.slice(0, -3) + '***' : ''}
+                  </p>
+
 
                   {hiring && (
                     <>

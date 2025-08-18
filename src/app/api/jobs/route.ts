@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/src/lib/prisma';
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,11 +26,11 @@ export async function GET(request: NextRequest) {
     };
 
     if (search) {
-      where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { company: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } }
-      ];
+      // Search for partial matches in title field (case-insensitive)
+      where.title = {
+        contains: search.trim(),
+        mode: 'insensitive'
+      };
     }
 
     if (type) {

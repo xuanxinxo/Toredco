@@ -41,7 +41,7 @@ export default function HiringFilter() {
 
   return (
     <div className="w-full flex flex-col items-center mt-8 mb-8">
-      <LocationFilter onLocationSelect={handleLocationSelect} />
+      {/* <LocationFilter onLocationSelect={handleLocationSelect} />
       <div className="w-full max-w-4xl grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
         {filters.map((filter) => (
           <button
@@ -55,7 +55,7 @@ export default function HiringFilter() {
             </span>
           </button>
         ))}
-      </div>
+      </div> */}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import './globals.css'
 import Header from '../components/layout/header/Header'
 import Footer from '../components/layout/footer/Footer'
-
+export const dynamic = 'force-dynamic';
 export const metadata = {
   title: 'TOREDCO',
   description: 'TOREDCO Website',

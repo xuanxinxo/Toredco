@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/src/lib/prisma';
 
+export const dynamic = 'force-dynamic';
 // GET: Lấy danh sách Job mới nhất (không phải NewJob)
 export async function GET() {
   try {

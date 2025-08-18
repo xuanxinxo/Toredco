@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminFromRequest } from '../../../../../lib/auth';
 import { prisma } from '../../../../../lib/prisma';
+export const dynamic = "force-dynamic";
 
 // PUT /api/admin/newjobs/[id] - Cập nhật việc làm
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {

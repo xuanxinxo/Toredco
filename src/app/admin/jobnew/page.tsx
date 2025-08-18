@@ -19,47 +19,66 @@ interface Job {
 export default function AdminJobs() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState('all');
   const router = useRouter();
 
-  useEffect(() => {
-    // Kiểm tra authentication
-    const token = localStorage.getItem('adminToken');
-    if (!token) {
-      router.push('/admin/login');
-      return;
-    }
-
-    loadJobs();
-  }, [router, filter]);
-
-  const loadJobs = async () => {
+  const loadJobs = async (token: string, statusFilter: string = 'all') => {
     try {
-      setLoading(true);
-      const token = localStorage.getItem('adminToken');
-      const response = await fetch(`/api/admin/newjobs?status=${filter === 'all' ? '' : filter}`, {
+      const response = await fetch(`/api/admin/newjobs?status=${statusFilter === 'all' ? '' : statusFilter}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
       
       if (data.success) {
-        setJobs(data.data);
+        return data.data;
       } else {
-        console.error('Error loading jobs:', data.message);
+        throw new Error(data.message || 'Failed to load jobs');
       }
     } catch (error) {
       console.error('Error loading jobs:', error);
-    } finally {
-      setLoading(false);
+      throw error;
     }
   };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem('adminToken');
+        if (!token) {
+          router.push('/admin/login');
+          return;
+        }
+
+        const data = await loadJobs(token, filter);
+        setJobs(data);
+        setError(null);
+      } catch (err) {
+        console.error('Error in fetchData:', err);
+        setError('Không thể tải danh sách công việc. Vui lòng thử lại sau.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [filter, router]);
 
   const handleStatusChange = async (jobId: number, newStatus: string) => {
     try {
       const token = localStorage.getItem('adminToken');
+      if (!token) {
+        router.push('/admin/login');
+        return;
+      }
+
       const response = await fetch(`/api/admin/newjobs/${jobId}`, {
         method: 'PUT',
         headers: {
@@ -73,39 +92,47 @@ export default function AdminJobs() {
       
       if (data.success) {
         // Reload jobs sau khi cập nhật
-        loadJobs();
+        const updatedJobs = await loadJobs(token, filter);
+        setJobs(updatedJobs);
       } else {
-        alert('Có lỗi xảy ra khi cập nhật trạng thái');
+        throw new Error(data.message || 'Có lỗi xảy ra khi cập nhật trạng thái');
       }
     } catch (error) {
       console.error('Error updating job status:', error);
-      alert('Có lỗi xảy ra khi cập nhật trạng thái');
+      setError(error instanceof Error ? error.message : 'Có lỗi xảy ra khi cập nhật trạng thái');
     }
   };
 
   const handleDelete = async (jobId: number) => {
-    if (confirm('Bạn có chắc muốn xóa việc làm này?')) {
-      try {
-        const token = localStorage.getItem('adminToken');
-        const response = await fetch(`/api/admin/newjobs/${jobId}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+    if (!confirm('Bạn có chắc muốn xóa việc làm này?')) {
+      return;
+    }
 
-        const data = await response.json();
-        
-        if (data.success) {
-          // Reload jobs sau khi xóa
-          loadJobs();
-        } else {
-          alert('Có lỗi xảy ra khi xóa việc làm');
-        }
-      } catch (error) {
-        console.error('Error deleting job:', error);
-        alert('Có lỗi xảy ra khi xóa việc làm');
+    try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        router.push('/admin/login');
+        return;
       }
+
+      const response = await fetch(`/api/admin/newjobs/${jobId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        // Cập nhật state thay vì gọi lại API
+        setJobs(prevJobs => prevJobs.filter(job => job.id !== jobId));
+      } else {
+        throw new Error(data.message || 'Có lỗi xảy ra khi xóa việc làm');
+      }
+    } catch (error) {
+      console.error('Error deleting job:', error);
+      setError(error instanceof Error ? error.message : 'Có lỗi xảy ra khi xóa việc làm');
     }
   };
 
@@ -117,7 +144,23 @@ export default function AdminJobs() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-xl">Loading...</div>
+        <div className="text-xl">Đang tải dữ liệu...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-xl text-red-600 p-4 bg-red-100 rounded-lg">
+          {error}
+          <button 
+            onClick={() => window.location.reload()}
+            className="ml-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Thử lại
+          </button>
+        </div>
       </div>
     );
   }

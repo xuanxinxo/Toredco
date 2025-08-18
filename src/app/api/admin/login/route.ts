@@ -5,6 +5,7 @@ import { authenticateAdmin } from '@/src/lib/auth';  // ← cập nhật path ch
 // ← cập nhật path cho gọn
 import jwt from 'jsonwebtoken';
 import { serverCookieHelper } from '@/src/lib/cookieHelper';
+export const dynamic = "force-dynamic";
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
