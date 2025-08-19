@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import HiringFilter from '../HiringFilter';
 import ApplyForm from './ApplyForm';
 
@@ -12,7 +12,10 @@ export function HiringList() {
   const [showApplyModal, setShowApplyModal] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(8); // 👈 hiển thị 8 ứng viên đầu
 
+  const fetchedRef = useRef(false);
   useEffect(() => {
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
     async function fetchCandidates() {
       try {
         const res = await fetch('/api/candidates');

@@ -4,7 +4,7 @@ import { Job } from "@/types/job";
 import JobCard from "./JobCard";
 import JobApplyModal from "../JobApplyModal"; // nhớ import
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface JobListProps {
   limit?: number;
@@ -20,7 +20,10 @@ export default function JobList({
   const [error, setError] = useState("");
   const [selectedJob, setSelectedJob] = useState<Job | null>(null); 
 
+  const fetchedRef = useRef(false);
   useEffect(() => {
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
     loadJobs();
   }, []);
 
