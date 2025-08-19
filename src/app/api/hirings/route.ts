@@ -18,7 +18,10 @@ export async function GET(request: NextRequest) {
     const cacheKey = JSON.stringify({ limit });
     const cached = cache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      return NextResponse.json({ success: true, data: cached.data, cached: true });
+      return NextResponse.json(
+        { success: true, data: cached.data, cached: true },
+        { headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=86400' } }
+      );
     }
 
     const data = await prisma.hiring.findMany({
@@ -40,7 +43,10 @@ export async function GET(request: NextRequest) {
     });
 
     cache.set(cacheKey, { data, timestamp: Date.now() });
-    return NextResponse.json({ success: true, data });
+    return NextResponse.json(
+      { success: true, data },
+      { headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=86400' } }
+    );
   } catch (err) {
     console.error('Lỗi khi lấy danh sách tuyển dụng:', err);
     return NextResponse.json(

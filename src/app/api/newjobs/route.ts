@@ -50,7 +50,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(cached.data);
     }
 
-    const totalJobs = await prisma.newJob.count({ where });
+    const isSmallHomeQuery = page === 1 && limit <= 8 && !search && !type && !location;
+
+    const totalJobs = isSmallHomeQuery ? -1 : await prisma.newJob.count({ where });
 
     const jobs = await prisma.newJob.findMany({
       where,
@@ -77,12 +79,16 @@ export async function GET(request: NextRequest) {
       pagination: {
         page,
         limit,
-        total: totalJobs,
-        totalPages: Math.ceil(totalJobs / limit),
+        total: totalJobs === -1 ? jobs.length : totalJobs,
+        totalPages: totalJobs === -1 ? 1 : Math.ceil(totalJobs / limit),
       },
     };
     cache.set(cacheKey, { data: payload, timestamp: Date.now() });
-    return NextResponse.json(payload);
+    return NextResponse.json(payload, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=86400'
+      }
+    });
 
   } catch (error) {
     console.error('Error fetching newjobs:', error);

@@ -26,11 +26,18 @@ export async function GET(request: NextRequest) {
     // Check cache first
     const cachedData = cache.get(cacheKey);
     if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_TTL) {
-      return NextResponse.json({
-        ...cachedData.data,
-        cached: true,
-        executionTime: Date.now() - startTime
-      });
+      return NextResponse.json(
+        {
+          ...cachedData.data,
+          cached: true,
+          executionTime: Date.now() - startTime
+        },
+        {
+          headers: {
+            'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=86400'
+          }
+        }
+      );
     }
 
     // Respect client-provided limit (capped to 100); default fetching 100
@@ -93,7 +100,11 @@ export async function GET(request: NextRequest) {
       timestamp: Date.now()
     });
     
-    return NextResponse.json(result);
+    return NextResponse.json(result, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=86400'
+      }
+    });
   } catch (error) {
     console.error('Error fetching jobs:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
