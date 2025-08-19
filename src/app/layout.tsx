@@ -1,6 +1,7 @@
 import './globals.css'
 import Header from '../components/layout/header/Header'
 import Footer from '../components/layout/footer/Footer'
+import FetchDelayProvider from './FetchDelayProvider'
 export const dynamic = 'force-dynamic';
 export const metadata = {
   title: 'TOREDCO',
@@ -19,9 +20,11 @@ export default function RootLayout({
         <Header />
 
         {/* Main full width */}
-        <main className="flex-grow w-full mt-20">
-          {children}
-        </main>
+        <FetchDelayProvider>
+          <main className="flex-grow w-full mt-20">
+            {children}
+          </main>
+        </FetchDelayProvider>
 
         {/* Footer full width */}
         <Footer />

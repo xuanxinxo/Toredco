@@ -172,9 +172,7 @@ function SearchContent() {
     }, 300),
     []
   );
-      window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
-    }
-  }, 300), [pathname]);
+
 
   // Handle scroll to top when search changes
   useEffect(() => {
