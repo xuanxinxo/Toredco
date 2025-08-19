@@ -27,7 +27,9 @@ function isGetApiRequest(input: FetchInput, init?: RequestInit): boolean {
 					: String(input);
 
 		const url = new URL(urlString, typeof window !== 'undefined' ? window.location.href : 'http://localhost');
-		return url.pathname.startsWith('/api/');
+		if (!url.pathname.startsWith('/api/')) return false;
+		const excluded = ['/api/jobs', '/api/newjobs', '/api/hirings', '/api/news', '/api/reviews'];
+		return !excluded.some((p) => url.pathname === p || url.pathname.startsWith(p + '/'));
 	} catch (_err) {
 		return false;
 	}
@@ -87,4 +89,3 @@ export default function FetchDelayProvider({ children }: { children: React.React
 
 	return <>{children}</>;
 }
-
