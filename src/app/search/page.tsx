@@ -1,10 +1,35 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import Link from "next/link";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import type { Job } from "../jobs/page";
 import { SuspenseBoundary } from "@/src/components/SuspenseBoundary";
+import { debounce } from 'lodash';
+
+// Simple skeleton loader component
+const Skeleton = () => (
+  <div className="animate-pulse bg-gray-200 rounded"></div>
+);
+
+// Job card skeleton loader
+const JobCardSkeleton = () => (
+  <div className="bg-white rounded-lg shadow-md p-6 mb-4 animate-pulse">
+    <div className="flex items-start space-x-4">
+      <div className="h-16 w-16 rounded-md bg-gray-200"></div>
+      <div className="flex-1 space-y-2">
+        <div className="h-6 w-3/4 bg-gray-200 rounded"></div>
+        <div className="h-4 w-1/2 bg-gray-200 rounded"></div>
+        <div className="flex space-x-2">
+          <div className="h-6 w-20 bg-gray-200 rounded-full"></div>
+          <div className="h-6 w-24 bg-gray-200 rounded-full"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const ITEMS_PER_PAGE = 12; // Increased items per page for better infinite scroll
 export default function SearchResultsPage() {
   return (
     <SuspenseBoundary>
@@ -17,13 +42,39 @@ function SearchContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const jobTitle = searchParams.get("search") || "";
-  const province = searchParams.get("location") || "";
+  const jobTitle = useMemo(() => searchParams.get("search") || "", [searchParams]);
+  const province = useMemo(() => searchParams.get("location") || "", [searchParams]);
+  const page = useMemo(() => parseInt(searchParams.get("page") || "1"), [searchParams]);
 
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
+  const [hasMore, setHasMore] = useState(true);
   const [showNoJobsMessage, setShowNoJobsMessage] = useState(false);
+  const initialLoad = useRef(true);
+  const pathname = usePathname();
+  // Simple inView state for infinite scroll
+  const [inView, setInView] = useState(false);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  
+  // Simple intersection observer implementation
+  useEffect(() => {
+    const currentRef = loadMoreRef.current;
+    if (!currentRef) return;
+    
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setInView(entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+    
+    observer.observe(currentRef);
+    return () => {
+      if (currentRef) observer.unobserve(currentRef);
+    };
+  }, []);
   const [applyModal, setApplyModal] = useState<{ open: boolean; job: Job | null }>({
     open: false,
     job: null,
@@ -60,58 +111,92 @@ function SearchContent() {
     }
   };
 
-  // Lấy dữ liệu jobs từ API
-  useEffect(() => {
-    const fetchJobs = async () => {
-      setLoading(true);
-      setError("");
-      setShowNoJobsMessage(false);
+  // Fetch jobs with infinite scroll support
+  const fetchJobs = useCallback(debounce(async (search: string, location: string, pageNum: number = 1, append: boolean = false) => {
+    if (pageNum > 1) setLoadingMore(true);
+    else setLoading(true);
+    
+    setError("");
+    setShowNoJobsMessage(false);
 
-      try {
-        const params = new URLSearchParams();
-        if (jobTitle) {
-          params.append("search", jobTitle);
-        }
-        if (province) params.append("location", province);
+    try {
+      const params = new URLSearchParams();
+      if (search) params.append("search", search);
+      if (location) params.append("location", location);
+      params.append("page", pageNum.toString());
+      params.append("limit", ITEMS_PER_PAGE.toString());
 
-        const res = await fetch(`/api/jobs?${params.toString()}`);
-        if (!res.ok) throw new Error("Không thể kết nối đến máy chủ");
+      const res = await fetch(`/api/jobs?${params.toString()}`);
+      if (!res.ok) throw new Error("Không thể kết nối đến máy chủ");
 
-        const text = await res.text();
-        if (!text) {
+      const data = await res.json();
+      
+      if (!data.jobs || !Array.isArray(data.jobs)) {
+        throw new Error("Dữ liệu không hợp lệ từ máy chủ");
+      }
+
+      if (data.jobs.length === 0) {
+        if (pageNum === 1) {
           setJobs([]);
           setShowNoJobsMessage(true);
-          return;
         }
-
-        let data;
-        try {
-          data = JSON.parse(text);
-        } catch {
-          throw new Error("Dữ liệu trả về không hợp lệ");
-        }
-
-        if (!data.jobs || !Array.isArray(data.jobs) || data.jobs.length === 0) {
-          setJobs([]);
-          setShowNoJobsMessage(true);
-          return;
-        }
-
-        setJobs(data.jobs);
+        setHasMore(false);
+      } else {
+        setJobs(prev => pageNum === 1 ? data.jobs : [...prev, ...data.jobs]);
+        setHasMore(data.jobs.length === ITEMS_PER_PAGE);
         setShowNoJobsMessage(false);
-      } catch (err) {
-        console.error("Error fetching jobs:", err);
-        const errorMessage = err instanceof Error ? err.message : "Đã xảy ra lỗi không xác định";
-        setError(errorMessage);
+      }
+    } catch (err) {
+      console.error("Error fetching jobs:", err);
+      const errorMessage = err instanceof Error ? err.message : "Đã xảy ra lỗi không xác định";
+      setError(errorMessage);
+      if (pageNum === 1) {
         setJobs([]);
         setShowNoJobsMessage(true);
-      } finally {
-        setLoading(false);
       }
-    };
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+      
+      // Update URL without page reload
+      const newParams = new URLSearchParams();
+      if (search) newParams.set('search', search);
+      if (location) newParams.set('location', location);
+      if (pageNum > 1) newParams.set('page', pageNum.toString());
+      
+      const newUrl = `${pathname}${newParams.toString() ? `?${newParams.toString()}` : ''}`;
+      window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
+    }
+  }, 300), [pathname]);
 
-    fetchJobs();
+  // Handle scroll to top when search changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [jobTitle, province]);
+
+  // Load more jobs when scrolled to bottom
+  useEffect(() => {
+    if (inView && !loading && !loadingMore && hasMore) {
+      const nextPage = page + 1;
+      fetchJobs(jobTitle, province, nextPage, true);
+    }
+  }, [inView, loading, loadingMore, hasMore, jobTitle, province, page, fetchJobs]);
+
+  // Initial load and when search params change
+  useEffect(() => {
+    // Only fetch if it's the initial load or search params changed
+    if (initialLoad.current || 
+        searchParams.get('search') !== (jobTitle || '') || 
+        searchParams.get('location') !== (province || '')) {
+      fetchJobs(jobTitle, province, 1);
+      initialLoad.current = false;
+    }
+    
+    // Cleanup function to cancel any pending requests
+    return () => {
+      fetchJobs.cancel();
+    };
+  }, [jobTitle, province, searchParams, fetchJobs]);
 
   // Clear the no jobs message when navigating away
   useEffect(() => {
@@ -120,8 +205,45 @@ function SearchContent() {
     };
   }, []);
 
+  // Loading indicator for infinite scroll
+  const LoadingIndicator = useMemo(() => {
+    if (!loadingMore) return null;
+    return (
+      <div className="flex justify-center py-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }, [loadingMore]);
+
+  // End of list message
+  const EndOfList = useMemo(() => {
+    if (loading || loadingMore || jobs.length === 0) return null;
+    return (
+      <div className="text-center py-6 text-gray-500">
+        Bạn đã xem hết tất cả công việc
+      </div>
+    );
+  }, [loading, loadingMore, jobs.length]);
+
   return (
-    <div className="max-w-6xl mx-auto py-10">
+    <div className="max-w-6xl mx-auto py-10 px-4">
+      {/* Search summary */}
+      <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+        <h1 className="text-xl font-semibold text-gray-800 mb-2">Kết quả tìm kiếm</h1>
+        {(jobTitle || province) && (
+          <p className="text-gray-600">
+            {jobTitle && <span>Việc làm: <span className="font-medium">{jobTitle}</span> </span>}
+            {province && <span>tại <span className="font-medium">{province}</span></span>}
+          </p>
+        )}
+        {!loading && jobs.length > 0 && (
+          <p className="text-sm text-gray-500 mt-1">
+            Đang hiển thị {jobs.length} công việc
+            {jobTitle || province ? ' phù hợp với tìm kiếm của bạn' : ''}
+          </p>
+        )}
+      </div>
+
       {error ? (
         // Trạng thái lỗi
         <div className="text-center py-12">
@@ -175,52 +297,58 @@ function SearchContent() {
             </div>
           )}
 
-          {/* Danh sách jobs */}
-          {jobs.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-600">
-                Không tìm thấy việc làm phù hợp
-                {jobTitle && ` với "${jobTitle}"`}
-                {province && ` tại ${province}`}
-              </p>
-              <Link href="/jobs" className="mt-4 text-blue-600 hover:underline font-semibold">
-                Xem tất cả việc làm
-              </Link>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {jobs.map((job) => (
-                <div key={job.id} className="bg-white rounded-lg shadow-sm overflow-hidden">
-                  <div className="p-6">
-                    <h3 className="text-lg font-semibold text-blue-600 mb-1">{job.title}</h3>
-                    <p className="text-sm text-gray-700">Công ty: {job.company}</p>
-                    <p className="text-sm text-gray-600">Địa điểm: {job.location}</p>
-                    <p className="text-sm text-gray-600">Loại hình: {job.type}</p>
-                    <p className="text-sm text-gray-600">Lương: {job.salary || "Thỏa thuận"}</p>
-                    {job.postedDate && (
-                      <p className="text-sm text-gray-400">
-                        Đăng ngày: {new Date(job.postedDate).toLocaleDateString("vi-VN")}
-                      </p>
-                    )}
-                    <p className="mt-2 text-sm text-gray-600 line-clamp-3">{job.description}</p>
-
-                    {job.img && (
-                      <div className="w-24 h-24 mt-3 bg-white rounded-md shadow-sm overflow-hidden">
-                        <img src={job.img} alt={`${job.company} logo`} className="w-full h-full object-contain" />
+          {/* Job List */}
+          <div className="space-y-4">
+            {loading ? (
+              Array(3).fill(0).map((_, i) => <JobCardSkeleton key={i} />)
+            ) : error ? (
+              <div className="text-center py-10 text-red-500">{error}</div>
+            ) : showNoJobsMessage ? (
+              <div className="text-center py-10">
+                <p>Không tìm thấy công việc phù hợp</p>
+                <Link href="/jobs" className="mt-4 inline-block text-blue-600 hover:underline font-semibold">
+                  Xem tất cả việc làm
+                </Link>
+              </div>
+            ) : (
+              <>
+                {jobs.map((job) => (
+                  <div key={job.id} className="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <div className="p-6">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1">{job.title}</h3>
+                      <p className="text-gray-600 mb-2">{job.company} • {job.location}</p>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+                          {job.type}
+                        </span>
+                        <span className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
+                          {job.salary}
+                        </span>
                       </div>
-                    )}
-
-                    <button
-                      onClick={() => setApplyModal({ open: true, job })}
-                      className="mt-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm px-4 py-2 rounded hover:scale-105 transition-all font-semibold"
-                    >
-                      Ứng tuyển
-                    </button>
+                      <button
+                        onClick={() => setApplyModal({ open: true, job })}
+                        className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                      >
+                        Ứng tuyển ngay
+                      </button>
+                    </div>
                   </div>
+                ))}
+                <div ref={loadMoreRef} className="h-10">
+                  {loadingMore && (
+                    <div className="flex justify-center py-4">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
-          )}
+                {!loadingMore && jobs.length > 0 && !hasMore && (
+                  <div className="text-center py-6 text-gray-500">
+                    Bạn đã xem hết tất cả công việc
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </>
       )}
     </div>

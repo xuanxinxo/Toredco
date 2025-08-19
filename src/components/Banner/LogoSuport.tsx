@@ -11,7 +11,7 @@ const sponsors = [
   '/img/xui.jpg',
   '/img/abu.jpg',
   '/img/dalat.jpg',
-  '/img/epic.jpg',
+  '/img/su.png',
   '/img/toredco.jpg',
 
 

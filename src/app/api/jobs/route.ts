@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/src/lib/prisma';
+
 export const dynamic = 'force-dynamic';
+// Cache the job listings for 60 seconds to reduce database load
+export const revalidate = 60;
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,49 +23,45 @@ export async function GET(request: NextRequest) {
 
     const skip = (page - 1) * limit;
 
-    // Build search conditions
-    const where: any = {
-      status: 'active'
+    // Build optimized search conditions
+    const where = {
+      status: 'active',
+      ...(search && {
+        title: {
+          contains: search.trim(),
+          mode: 'insensitive'
+        }
+      }),
+      ...(type && { type }),
+      ...(location && {
+        location: { 
+          contains: location.trim(),
+          mode: 'insensitive' 
+        }
+      })
     };
 
-    if (search) {
-      // Search for partial matches in title field (case-insensitive)
-      where.title = {
-        contains: search.trim(),
-        mode: 'insensitive'
-      };
-    }
+    // Optimize the query by only selecting fields needed for the listing
+    const selectFields = {
+      id: true,
+      title: true,
+      company: true,
+      location: true,
+      type: true,
+      salary: true,
+      deadline: true,
+      postedDate: true,
+      img: true
+    };
 
-    if (type) {
-      where.type = type;
-    }
-
-    if (location) {
-      where.location = { contains: location, mode: 'insensitive' };
-    }
-
-    // Use Prisma's findMany with count
-    const [jobs, totalJobs] = await Promise.all([
+    // Use a transaction to run queries in parallel
+    const [jobs, totalJobs] = await prisma.$transaction([
       prisma.job.findMany({
         where,
+        select: selectFields,
         orderBy: { postedDate: 'desc' },
         skip,
         take: limit,
-        select: {
-          id: true,
-          title: true,
-          company: true,
-          location: true,
-          type: true,
-          salary: true,
-          description: true,
-          requirements: true,
-          benefits: true,
-          deadline: true,
-          status: true,
-          postedDate: true,
-          img: true
-        }
       }),
       prisma.job.count({ where })
     ]);
