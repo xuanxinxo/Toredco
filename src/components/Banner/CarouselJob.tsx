@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -93,22 +93,23 @@ export default function CarouselJob() {
   const jobsPerPage = 6;
   const bgImages = ['/img/slide-1.png', '/img/slide-2.png'];
 
+  const fetchedRef = useRef(false);
   useEffect(() => {
-    const fetchJobs = async () => {
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
+    (async () => {
       try {
-        const response = await fetch('/api/jobs?limit=16&status=active');
+        const response = await fetch('/api/jobs?limit=6&status=active');
         const data = await response.json();
         if (data.jobs) {
-          setJobs(data.jobs.slice(0, 16));
+          setJobs(data.jobs);
         }
       } catch (error) {
         console.error('Error fetching jobs:', error);
       } finally {
         setLoading(false);
       }
-    };
-
-    fetchJobs();
+    })();
   }, []);
 
   useEffect(() => {

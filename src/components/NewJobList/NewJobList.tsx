@@ -3,7 +3,7 @@
 import { Job } from "@/src/app/types/job";
 import JobCard from "@/src/components/JobList/JobCard";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import JobCardNew from "./JobCardNew";
 // import NewJobApplyModal from "../NewJobApplyModal";
 
@@ -20,7 +20,10 @@ export default function NewJobList({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const fetchedRef = useRef(false);
   useEffect(() => {
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
     loadJobs();
   }, []);
 

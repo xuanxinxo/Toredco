@@ -17,22 +17,30 @@ export async function GET(request: NextRequest) {
     const search = (searchParams.get('search') || '').trim();
     const type = (searchParams.get('type') || '').trim();
     const location = (searchParams.get('location') || '').trim();
+    const limitParam = parseInt(searchParams.get('limit') || '');
     
     // Create a cache key based on the request parameters
-    const cacheKey = JSON.stringify({ search, type, location });
+    const limit = Number.isFinite(limitParam) && limitParam > 0 ? Math.min(limitParam, 100) : 100;
+    const cacheKey = JSON.stringify({ search, type, location, limit });
     
     // Check cache first
     const cachedData = cache.get(cacheKey);
     if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_TTL) {
-      return NextResponse.json({
-        ...cachedData.data,
-        cached: true,
-        executionTime: Date.now() - startTime
-      });
+      return NextResponse.json(
+        {
+          ...cachedData.data,
+          cached: true,
+          executionTime: Date.now() - startTime
+        },
+        {
+          headers: {
+            'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=86400'
+          }
+        }
+      );
     }
 
-    // Remove pagination for initial load
-    const limit = 100; // Increased limit for initial load
+    // Respect client-provided limit (capped to 100); default fetching 100
 
     // Build optimized search conditions
     const where = {
@@ -92,7 +100,11 @@ export async function GET(request: NextRequest) {
       timestamp: Date.now()
     });
     
-    return NextResponse.json(result);
+    return NextResponse.json(result, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=86400'
+      }
+    });
   } catch (error) {
     console.error('Error fetching jobs:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });

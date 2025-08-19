@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useEffect, useRef, useState } from 'react';
 import HeroSection from '../components/hero/HeroSection';
 import FeaturesSection from '../components/features/FeaturesSection';
 import JobList from '../components/JobList/JobList';
@@ -13,6 +14,37 @@ import NewsSection from '../components/NewsSection';
 import LogoSupport from '../components/Banner/LogoSuport';
 
 export default function Home() {
+  const [showMiddle, setShowMiddle] = useState(false);
+  const [showBottom, setShowBottom] = useState(false);
+  const middleRef = useRef<HTMLDivElement | null>(null);
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const el = middleRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setShowMiddle(true);
+        io.disconnect();
+      }
+    }, { rootMargin: '200px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const el = bottomRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setShowBottom(true);
+        io.disconnect();
+      }
+    }, { rootMargin: '200px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   return (
     <>
       {/* Hero Section */}
@@ -41,21 +73,27 @@ export default function Home() {
         <LogoSupport />
       </div>
 
-      {/* New Job List + Marquee + Hiring List */}
-      <div className="mb-12 px-4 md:px-6 lg:px-8 space-y-12">
-        <NewJobList
-          limit={4}
-          containerClassName="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-        />
-        <Marquee />
-        <HiringList />
-      </div>
+      {/* Lazy mount middle sections when in view */}
+      <div ref={middleRef} />
+      {showMiddle && (
+        <div className="mb-12 px-4 md:px-6 lg:px-8 space-y-12">
+          <NewJobList
+            limit={4}
+            containerClassName="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+          />
+          <Marquee />
+          <HiringList />
+        </div>
+      )}
 
-      {/* News + Reviews */}
-      <div className="mb-12 px-4 md:px-6 lg:px-8 space-y-12">
-        <NewsSection />
-        <ReviewRankingTable />
-      </div>
+      {/* Lazy mount bottom sections when in view */}
+      <div ref={bottomRef} />
+      {showBottom && (
+        <div className="mb-12 px-4 md:px-6 lg:px-8 space-y-12">
+          <NewsSection />
+          <ReviewRankingTable />
+        </div>
+      )}
     </>
   );
 }

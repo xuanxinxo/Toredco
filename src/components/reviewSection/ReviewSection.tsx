@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 
 type Review = {
@@ -31,7 +31,10 @@ const getStarBg = (s: number) =>
 export default function ReviewRankingTable() {
   const [reviews, setReviews] = useState<Review[]>([]);
 
+  const fetchedRef = useRef(false);
   useEffect(() => {
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
     (async () => {
       const res = await fetch('/api/reviews');
       const { data } = await res.json();
