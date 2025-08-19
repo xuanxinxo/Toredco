@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/src/lib/prisma';
+import { LRUCache } from 'lru-cache';
 
-// Cache the job listings for 5 minutes to reduce database load
-export const revalidate = 300; // 5 minutes
+// Configure server-side caching with LRU cache
+const cache = new LRUCache<string, { data: any; timestamp: number }>({
+  max: 100, // Max 100 entries
+  ttl: 5 * 60 * 1000, // 5 minutes TTL
+  allowStale: false,
+  updateAgeOnGet: true,
+  updateAgeOnHas: true,
+});
 
-// In-memory cache with 5-minute TTL
-const cache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes in milliseconds
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
@@ -16,13 +21,15 @@ export async function GET(request: NextRequest) {
     const search = (searchParams.get('search') || '').trim();
     const type = (searchParams.get('type') || '').trim();
     const location = (searchParams.get('location') || '').trim();
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+    const limit = Math.min(20, Math.max(1, parseInt(searchParams.get('limit') || '20')));
     
     // Create a cache key based on the request parameters
-    const cacheKey = JSON.stringify({ search, type, location });
+    const cacheKey = JSON.stringify({ search, type, location, page, limit });
     
     // Check cache first
     const cachedData = cache.get(cacheKey);
-    if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_TTL) {
+    if (cachedData) {
       return NextResponse.json({
         ...cachedData.data,
         cached: true,
@@ -60,26 +67,31 @@ export async function GET(request: NextRequest) {
       img: true
     };
 
-    // Fetch all matching jobs in one go with optimized query
+    // Get total count for pagination
+    const total = await prisma.job.count({ where });
+    const totalPages = Math.ceil(total / limit);
+    const skip = (page - 1) * limit;
+
+    // Fetch only the needed page of jobs
     const jobs = await prisma.job.findMany({
       where,
       select: selectFields,
       orderBy: { postedDate: 'desc' },
-      take: 100, // Limit to 100 jobs for performance
+      take: limit,
+      skip,
     });
     
-    const totalJobs = jobs.length;
-    const executionTime = Date.now() - startTime;
-
     const result = {
       jobs,
       pagination: {
-        page: 1,
-        limit: jobs.length,
-        total: totalJobs,
-        totalPages: 1
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
       },
-      executionTime
+      executionTime: Date.now() - startTime
     };
     
     // Cache the result
@@ -91,12 +103,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       ...result,
       cached: false,
-      executionTime
     });
   } catch (error) {
     console.error('Error fetching jobs:', error);
     return NextResponse.json(
-      { error: 'Server error', executionTime: Date.now() - startTime },
+      { 
+        error: 'Server error', 
+        message: error instanceof Error ? error.message : 'Unknown error',
+        executionTime: Date.now() - startTime 
+      },
       { status: 500 }
     );
   }

@@ -70,7 +70,7 @@ export default function ReviewRankingTable() {
 
         {/* ---- table giữ nguyên ---- */}
         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
-          <table className="w-full text-center border-collapse">
+          <table className="w-full text-center border-collapse">  
             <thead>
               <tr className="bg-gradient-to-r from-blue-600 to-purple-600">
                 <th className="py-6 text-xl font-bold text-white border-r border-white/20">
