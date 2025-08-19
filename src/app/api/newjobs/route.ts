@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/src/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 300;
+
+// Simple in-memory cache
+const cache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 5 * 60 * 1000;
+
 export async function GET(request: NextRequest) {
   try {
     console.log('MONGODB_URI:', process.env.MONGODB_URI);
@@ -37,6 +44,12 @@ export async function GET(request: NextRequest) {
       where.location = { contains: location, mode: 'insensitive' };
     }
 
+    const cacheKey = JSON.stringify({ page, limit, search, type, location, where });
+    const cached = cache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      return NextResponse.json(cached.data);
+    }
+
     const totalJobs = await prisma.newJob.count({ where });
 
     const jobs = await prisma.newJob.findMany({
@@ -44,11 +57,22 @@ export async function GET(request: NextRequest) {
       skip,
       take: limit,
       orderBy: { postedDate: 'desc' },
+      select: {
+        id: true,
+        title: true,
+        company: true,
+        location: true,
+        type: true,
+        salary: true,
+        img: true,
+        postedDate: true,
+        description: true,
+      },
     });
 
     console.log(`Found ${jobs.length} newjobs out of ${totalJobs} total`);
 
-    return NextResponse.json({
+    const payload = {
       jobs,
       pagination: {
         page,
@@ -56,7 +80,9 @@ export async function GET(request: NextRequest) {
         total: totalJobs,
         totalPages: Math.ceil(totalJobs / limit),
       },
-    });
+    };
+    cache.set(cacheKey, { data: payload, timestamp: Date.now() });
+    return NextResponse.json(payload);
 
   } catch (error) {
     console.error('Error fetching newjobs:', error);

@@ -1,12 +1,45 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../lib/prisma';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 300; // cache 5 minutes on the server
+
+// Simple in-memory cache
+const cache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 5 * 60 * 1000;
+
 // GET /api/hirings - lấy danh sách tuyển dụng
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const searchParams = request.nextUrl.searchParams;
+    const limitParam = parseInt(searchParams.get('limit') || '');
+    const limit = Number.isFinite(limitParam) && limitParam > 0 ? Math.min(limitParam, 100) : 50;
+
+    const cacheKey = JSON.stringify({ limit });
+    const cached = cache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      return NextResponse.json({ success: true, data: cached.data, cached: true });
+    }
+
     const data = await prisma.hiring.findMany({
       orderBy: { postedDate: 'desc' },
+      take: limit,
+      select: {
+        id: true,
+        title: true,
+        company: true,
+        location: true,
+        type: true,
+        salary: true,
+        deadline: true,
+        postedDate: true,
+        img: true,
+        description: true,
+        requirements: true,
+      },
     });
+
+    cache.set(cacheKey, { data, timestamp: Date.now() });
     return NextResponse.json({ success: true, data });
   } catch (err) {
     console.error('Lỗi khi lấy danh sách tuyển dụng:', err);
