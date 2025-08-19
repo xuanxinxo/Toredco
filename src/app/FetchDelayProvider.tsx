@@ -1,3 +1,4 @@
+// Clean single implementation only
 'use client';
 
 import React, { useEffect, useRef } from 'react';
