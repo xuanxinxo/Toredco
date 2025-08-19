@@ -10,7 +10,7 @@ declare global {
 
 type FetchInput = RequestInfo | URL;
 
-const MIN_DELAY_MS = 1000;
+const MAX_DURATION_MS = 1000;
 
 function isGetApiRequest(input: FetchInput, init?: RequestInit): boolean {
 	const method = (init?.method || (input instanceof Request ? input.method : 'GET') || 'GET').toUpperCase();
@@ -32,14 +32,6 @@ function isGetApiRequest(input: FetchInput, init?: RequestInit): boolean {
 	}
 }
 
-async function waitForAtLeast(startMs: number, minDelayMs: number): Promise<void> {
-	const elapsed = performance.now() - startMs;
-	const remaining = minDelayMs - elapsed;
-	if (remaining > 0) {
-		await new Promise((resolve) => setTimeout(resolve, remaining));
-	}
-}
-
 export default function FetchDelayProvider({ children }: { children: React.ReactNode }) {
 	const originalFetchRef = useRef<typeof fetch | null>(null);
 
@@ -51,19 +43,34 @@ export default function FetchDelayProvider({ children }: { children: React.React
 		originalFetchRef.current = window.fetch.bind(window);
 
 		const wrappedFetch: typeof fetch = async (input: FetchInput, init?: RequestInit) => {
-			const shouldDelay = isGetApiRequest(input, init);
-			const start = performance.now();
+			const shouldCap = isGetApiRequest(input, init);
+			if (!shouldCap) {
+				return (originalFetchRef.current as typeof fetch)(input as any, init);
+			}
+
+			const controller = new AbortController();
+			const timeoutId = setTimeout(() => {
+				try { controller.abort('timeout'); } catch (_err) {}
+			}, MAX_DURATION_MS);
+
+			// Respect existing signal: propagate caller aborts
+			const originalSignal = init?.signal || (input instanceof Request ? input.signal : undefined);
+			if (originalSignal) {
+				const anySignal: any = originalSignal as any;
+				if (anySignal.aborted) {
+					try { controller.abort(anySignal.reason); } catch (_err) {}
+				} else {
+					originalSignal.addEventListener('abort', () => {
+						try { controller.abort(anySignal.reason); } catch (_err) {}
+					}, { once: true });
+				}
+			}
+
 			try {
-				const response = await (originalFetchRef.current as typeof fetch)(input as any, init);
-				if (shouldDelay) {
-					await waitForAtLeast(start, MIN_DELAY_MS);
-				}
-				return response;
-			} catch (error) {
-				if (shouldDelay) {
-					await waitForAtLeast(start, MIN_DELAY_MS);
-				}
-				throw error;
+				const nextInit: RequestInit = { ...(init || {}), signal: controller.signal };
+				return await (originalFetchRef.current as typeof fetch)(input as any, nextInit);
+			} finally {
+				clearTimeout(timeoutId);
 			}
 		};
 
