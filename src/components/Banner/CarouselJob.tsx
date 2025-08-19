@@ -99,10 +99,10 @@ export default function CarouselJob() {
     fetchedRef.current = true;
     (async () => {
       try {
-        const response = await fetch('/api/jobs?limit=16&status=active');
+        const response = await fetch('/api/jobs?limit=6&status=active');
         const data = await response.json();
         if (data.jobs) {
-          setJobs(data.jobs.slice(0, 16));
+          setJobs(data.jobs);
         }
       } catch (error) {
         console.error('Error fetching jobs:', error);
