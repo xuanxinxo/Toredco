@@ -111,60 +111,67 @@ function SearchContent() {
     }
   };
 
-  // Fetch jobs with infinite scroll support
-  const fetchJobs = useCallback(debounce(async (search: string, location: string, pageNum: number = 1, append: boolean = false) => {
-    if (pageNum > 1) setLoadingMore(true);
-    else setLoading(true);
-    
-    setError("");
-    setShowNoJobsMessage(false);
-
-    try {
-      const params = new URLSearchParams();
-      if (search) params.append("search", search);
-      if (location) params.append("location", location);
-      params.append("page", pageNum.toString());
-      params.append("limit", ITEMS_PER_PAGE.toString());
-
-      const res = await fetch(`/api/jobs?${params.toString()}`);
-      if (!res.ok) throw new Error("Không thể kết nối đến máy chủ");
-
-      const data = await res.json();
-      
-      if (!data.jobs || !Array.isArray(data.jobs)) {
-        throw new Error("Dữ liệu không hợp lệ từ máy chủ");
+  // Fetch jobs with  // Debounced search function
+  const fetchJobs = useCallback(
+    debounce(async (search: string, location: string, pageNum: number = 1) => {
+      if (pageNum === 1) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
       }
+      
+      setError("");
+      setShowNoJobsMessage(false);
 
-      if (data.jobs.length === 0) {
-        if (pageNum === 1) {
+      try {
+        const params = new URLSearchParams();
+        if (search) params.append("search", search);
+        if (location) params.append("location", location);
+        
+        // Always fetch all jobs in one go for better performance
+        const res = await fetch(`/api/jobs?${params.toString()}`);
+        if (!res.ok) throw new Error("Không thể kết nối đến máy chủ");
+
+        const data = await res.json();
+        
+        if (!data.jobs || !Array.isArray(data.jobs)) {
+          throw new Error("Dữ liệu không hợp lệ từ máy chủ");
+        }
+
+        if (data.jobs.length === 0) {
           setJobs([]);
           setShowNoJobsMessage(true);
+          setHasMore(false);
+        } else {
+          // For better UX, show first 12 items immediately, then load the rest
+          const initialJobs = data.jobs.slice(0, 12);
+          const remainingJobs = data.jobs.slice(12);
+          
+          setJobs(initialJobs);
+          setHasMore(remainingJobs.length > 0);
+          setShowNoJobsMessage(false);
+          
+          // Load remaining jobs in the background
+          if (remainingJobs.length > 0) {
+            setTimeout(() => {
+              setJobs(prev => [...prev, ...remainingJobs]);
+              setHasMore(false);
+            }, 0);
+          }
         }
-        setHasMore(false);
-      } else {
-        setJobs(prev => pageNum === 1 ? data.jobs : [...prev, ...data.jobs]);
-        setHasMore(data.jobs.length === ITEMS_PER_PAGE);
-        setShowNoJobsMessage(false);
-      }
-    } catch (err) {
-      console.error("Error fetching jobs:", err);
-      const errorMessage = err instanceof Error ? err.message : "Đã xảy ra lỗi không xác định";
-      setError(errorMessage);
-      if (pageNum === 1) {
+      } catch (err) {
+        console.error("Error fetching jobs:", err);
+        const errorMessage = err instanceof Error ? err.message : "Đã xảy ra lỗi không xác định";
+        setError(errorMessage);
         setJobs([]);
         setShowNoJobsMessage(true);
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
       }
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-      
-      // Update URL without page reload
-      const newParams = new URLSearchParams();
-      if (search) newParams.set('search', search);
-      if (location) newParams.set('location', location);
-      if (pageNum > 1) newParams.set('page', pageNum.toString());
-      
-      const newUrl = `${pathname}${newParams.toString() ? `?${newParams.toString()}` : ''}`;
+    }, 300),
+    []
+  );
       window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
     }
   }, 300), [pathname]);

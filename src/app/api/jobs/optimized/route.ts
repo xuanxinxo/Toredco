@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/src/lib/prisma';
 
-export const dynamic = 'force-dynamic';
 // Cache the job listings for 5 minutes to reduce database load
 export const revalidate = 300; // 5 minutes
 
@@ -31,28 +30,25 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Remove pagination for initial load
-    const limit = 100; // Increased limit for initial load
-
     // Build optimized search conditions
     const where = {
       status: 'active',
       ...(search && {
         title: {
-          contains: search.trim(),
-          mode: 'insensitive'
+          contains: search,
+          mode: 'insensitive' as const
         }
       }),
       ...(type && { type }),
       ...(location && {
         location: { 
-          contains: location.trim(),
-          mode: 'insensitive' 
+          contains: location,
+          mode: 'insensitive' as const
         }
       })
     };
 
-    // Optimize the query by only selecting fields needed for the listing
+    // Only select fields needed for the listing
     const selectFields = {
       id: true,
       title: true,
@@ -60,20 +56,20 @@ export async function GET(request: NextRequest) {
       location: true,
       type: true,
       salary: true,
-      deadline: true,
       postedDate: true,
       img: true
     };
 
-    // Fetch all jobs in one go with optimized query
+    // Fetch all matching jobs in one go with optimized query
     const jobs = await prisma.job.findMany({
       where,
       select: selectFields,
       orderBy: { postedDate: 'desc' },
-      take: limit,
+      take: 100, // Limit to 100 jobs for performance
     });
     
     const totalJobs = jobs.length;
+    const executionTime = Date.now() - startTime;
 
     const result = {
       jobs,
@@ -83,7 +79,7 @@ export async function GET(request: NextRequest) {
         total: totalJobs,
         totalPages: 1
       },
-      executionTime: Date.now() - startTime
+      executionTime
     };
     
     // Cache the result
@@ -92,49 +88,16 @@ export async function GET(request: NextRequest) {
       timestamp: Date.now()
     });
     
-    return NextResponse.json(result);
+    return NextResponse.json({
+      ...result,
+      cached: false,
+      executionTime
+    });
   } catch (error) {
     console.error('Error fetching jobs:', error);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
-  }
-}
-
-export async function POST(req: NextRequest) {
-  try {
-    const {
-      title,
-      company,
-      location,
-      type,
-      salary,
-      description,
-      requirements,
-      benefits,
-      deadline,
-    } = await req.json();
-
-    // Validate required fields
-    if (!title || !company || !location || !type || !salary || !description || !deadline) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-    }
-
-    const job = await prisma.job.create({
-      data: {
-        title,
-        company,
-        location,
-        type,
-        salary,
-        description,
-        requirements: requirements ?? [],
-        benefits: benefits ?? [],
-        deadline: new Date(deadline),
-        status: 'pending', // Mặc định là pending, cần admin phê duyệt
-        postedDate: new Date(),
-      },
-    });
-    return NextResponse.json(job, { status: 201 });
-  } catch (error) {
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Server error', executionTime: Date.now() - startTime },
+      { status: 500 }
+    );
   }
 }
