@@ -2,8 +2,12 @@
 
 export const dynamic = "force-dynamic";
 
-import React, { Suspense, useEffect, useRef, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import React, { Suspense, useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useQuery, UseQueryResult } from '@tanstack/react-query';
+
+// Cache time in milliseconds (5 minutes)
+const CACHE_TIME = 5 * 60 * 1000;
 
 export interface Job {
   id: string;
@@ -55,17 +59,74 @@ function ApplyModal({ open, onClose, onSubmit, job }: any) {
   );
 }
 
+interface JobsApiResponse {
+  jobs: Job[];
+  pagination: {
+    total: number;
+    totalPages: number;
+    page: number;
+    limit: number;
+  };
+}
+
+// Custom hook for fetching jobs with React Query
+function useJobsQuery(page: number, limit: number) {
+  return useQuery({
+    queryKey: ['jobs', 'optimized', page, limit],
+    queryFn: async (): Promise<JobsApiResponse> => {
+      const res = await fetch(`/api/jobs/optimized?page=${page}&limit=${limit}`);
+      if (!res.ok) {
+        throw new Error('Không thể tải danh sách công việc');
+      }
+      return res.json();
+    },
+    staleTime: CACHE_TIME,
+    gcTime: CACHE_TIME,
+    placeholderData: (previousData) => previousData,
+    retry: 2,
+    refetchOnWindowFocus: false,
+  });
+}
+
+// Skeleton loader component
+function JobCardSkeleton() {
+  return (
+    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-gray-100 animate-pulse">
+      <div className="p-6">
+        <div className="flex items-center mb-4">
+          <div className="w-12 h-12 bg-gray-200 rounded-full mr-4"></div>
+          <div className="flex-1">
+            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+          </div>
+        </div>
+        <div className="space-y-3">
+          <div className="h-4 bg-gray-200 rounded w-full"></div>
+          <div className="h-3 bg-gray-200 rounded w-5/6"></div>
+          <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface PaginationState {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
 export function AllJobsPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({
-    page: 1,
+  const pathname = usePathname();
+  
+  const [pagination, setPagination] = useState<PaginationState>({
+    page: parseInt(searchParams.get('page') || '1', 10),
     limit: 9,
     total: 0,
-    totalPages: 0,
+    totalPages: 1,
   });
 
   const [applyModal, setApplyModal] = useState<{ open: boolean; job: any }>({
@@ -73,31 +134,158 @@ export function AllJobsPageContent() {
     job: null,
   });
 
-  useEffect(() => {
-    const currentPage = parseInt(searchParams.get("page") || "1", 10);
-    setPagination((prev) => ({ ...prev, page: currentPage }));
-  }, [searchParams]);
+  // Use React Query for data fetching with caching
+  const { data, isLoading, isError, error, isFetching } = useJobsQuery(pagination.page, pagination.limit);
+  
+  // Safely access data with fallbacks
+  const jobs = data?.jobs ?? [];
+  const paginationData = {
+    total: data?.pagination?.total ?? 0,
+    totalPages: data?.pagination?.totalPages ?? 1,
+    page: data?.pagination?.page ?? 1,
+    limit: data?.pagination?.limit ?? 9
+  };
+  
+  // Update URL when pagination changes
+  const updateURL = useCallback((page: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', page.toString());
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [searchParams, router, pathname]);
 
+  // Handle pagination
+  const handlePageChange = useCallback((newPage: number) => {
+    if (newPage < 1 || newPage > paginationData.totalPages) return;
+    
+    setPagination(prev => ({
+      ...prev,
+      page: newPage,
+    }));
+    updateURL(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [updateURL, paginationData.totalPages]);
+
+  // Update pagination when data is loaded
   useEffect(() => {
-    async function loadJobs() {
-      setLoading(true);
-      try {
-        const res = await fetch(`/api/jobs?page=${pagination.page}&limit=${pagination.limit}`);
-        const data = await res.json();
-        setJobs(data.jobs || []);
-        setPagination((prev) => ({
-          ...prev,
-          total: data.pagination.total,
-          totalPages: data.pagination.totalPages,
-        }));
-      } catch (error) {
-        console.error("Lỗi khi tải jobs:", error);
-      } finally {
-        setLoading(false);
-      }
+    if (data?.pagination) {
+      setPagination(prev => ({
+        ...prev,
+        total: data.pagination.total,
+        totalPages: data.pagination.totalPages,
+      }));
     }
-    loadJobs();
-  }, [pagination.page, pagination.limit]);
+  }, [data?.pagination]);
+  
+  // Handle error state
+  if (isError) {
+    return (
+      <div className="max-w-6xl mx-auto py-10">
+        <h1 className="text-2xl font-bold text-red-600 mb-4">Đã xảy ra lỗi</h1>
+        <p className="text-gray-700 mb-4">Không thể tải danh sách công việc. Vui lòng thử lại sau.</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Tải lại
+        </button>
+      </div>
+    );
+  }
+
+  // Memoize job cards to prevent unnecessary re-renders
+  const jobCards = useMemo(() => 
+    data?.jobs.map((job: Job) => (
+      <div key={job.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 border border-gray-100">
+        <div className="p-6">
+          <div className="flex items-center mb-4">
+            <div className="w-12 h-12 bg-gray-200 rounded-full mr-4"></div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-blue-600 mb-1">{job.title}</h3>
+              <p className="text-sm text-gray-700 mb-1">Công ty: {job.company}</p>
+              <p className="text-sm text-gray-600">Địa điểm: {job.location}</p>
+              <p className="text-sm text-gray-600">Loại hình: {job.type}</p>
+              <p className="text-sm text-gray-600">Lương: {job.salary || "Thỏa thuận"}</p>
+              <p className="text-sm text-gray-400">
+                Đăng ngày: {new Date(job.postedDate).toLocaleDateString("vi-VN")}
+              </p>
+              <p className="mt-2 text-sm text-gray-600 line-clamp-3">{job.description}</p>
+            </div>
+          </div>
+          <button
+            onClick={() => setApplyModal({ open: true, job })}
+            className="mt-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm px-4 py-2 rounded hover:scale-105 transition-all font-semibold"
+          >
+            Ứng tuyển
+          </button>
+        </div>
+      </div>
+    )),
+    [data?.jobs, setApplyModal]
+  );
+
+  // Pagination controls
+  const paginationControls = useMemo(() => {
+    if (pagination.totalPages <= 1) return null;
+    
+    return (
+      <div className="flex justify-center items-center space-x-1 mt-8">
+        <button
+          onClick={() => handlePageChange(pagination.page - 1)}
+          disabled={pagination.page === 1}
+          className="px-3 py-1 rounded-md disabled:text-gray-400 disabled:cursor-not-allowed text-blue-600 hover:bg-blue-50"
+        >
+          &laquo;
+        </button>
+        <span className="mx-2 text-gray-600">
+          Trang {pagination.page} / {pagination.totalPages}
+        </span>
+        <button
+          onClick={() => handlePageChange(pagination.page + 1)}
+          disabled={pagination.page === pagination.totalPages}
+          className="px-3 py-1 rounded-md disabled:text-gray-400 disabled:cursor-not-allowed text-blue-600 hover:bg-blue-50"
+        >
+          &raquo;
+        </button>
+      </div>
+    );
+  }, [pagination, handlePageChange]);
+
+  const totalPages = data?.pagination?.totalPages || 1;
+  const currentPage = Math.min(pagination.page, totalPages || 1);
+  
+  // Show loading state
+  if (isLoading && !data) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-3xl font-bold text-gray-900 mb-8">Đang tải công việc...</h1>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <JobCardSkeleton key={i} />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Show error state
+  if (isError) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto text-center">
+          <h1 className="text-3xl font-bold text-red-600 mb-4">Đã xảy ra lỗi</h1>
+          <p className="text-gray-700 mb-6">Không thể tải danh sách công việc. Vui lòng thử lại sau.</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Thử lại
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handleApply = (job: Job) => {
     setApplyModal({ open: true, job });
@@ -127,7 +315,7 @@ export function AllJobsPageContent() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="max-w-6xl mx-auto py-10">
         <h1 className="text-3xl font-bold mb-6 text-left">Tất cả việc làm</h1>
@@ -192,47 +380,44 @@ export function AllJobsPageContent() {
       </div>
 
       {pagination.totalPages > 1 && (
-        <>
-          <div className="mt-8 flex justify-center items-center gap-2">
+        <div className="mt-8 flex justify-center items-center gap-2">
+          <button
+            disabled={pagination.page <= 1}
+            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+            onClick={() => router.push(`/jobs?page=${pagination.page - 1}`)}
+          >
+            {"<"} Trước
+          </button>
+
+          {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((p) => (
             <button
-              disabled={pagination.page <= 1}
-              className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
-              onClick={() => router.push(`/jobs?page=${pagination.page - 1}`)}
+              key={p}
+              className={`px-3 py-1 rounded ${p === pagination.page ? "bg-blue-600 text-white" : "bg-gray-100"}`}
+              onClick={() => router.push(`/jobs?page=${p}`)}
             >
-              {"<"} Trước
+              {p}
             </button>
+          ))}
 
-            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((p) => (
-              <button
-                key={p}
-                className={`px-3 py-1 rounded ${p === pagination.page ? "bg-blue-600 text-white" : "bg-gray-100"}`}
-                onClick={() => router.push(`/jobs?page=${p}`)}
-              >
-                {p}
-              </button>
-            ))}
-
-            <button
-              disabled={pagination.page >= pagination.totalPages}
-              className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
-              onClick={() => router.push(`/jobs?page=${pagination.page + 1}`)}
-            >
-              Tiếp {">"}
-            </button>
-          </div>
-
-          <div className="mt-4 text-center text-sm text-gray-600">
-            Trang {pagination.page} / {pagination.totalPages}
-          </div>
-        </>
+          <button
+            disabled={pagination.page >= pagination.totalPages}
+            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+            onClick={() => router.push(`/jobs?page=${pagination.page + 1}`)}
+          >
+            Tiếp {">"}
+          </button>
+        </div>
       )}
 
-      <ApplyModal
-        open={applyModal.open}
-        onClose={() => setApplyModal({ open: false, job: null })}
-        onSubmit={handleApplySubmit}
-        job={applyModal.job}
-      />
+      {/* Application Modal */}
+      {applyModal.open && applyModal.job && (
+        <ApplyModal
+          open={applyModal.open}
+          onClose={() => setApplyModal({ open: false, job: null })}
+          onSubmit={handleApplySubmit}
+          job={applyModal.job}
+        />
+      )}
     </div>
   );
 }
