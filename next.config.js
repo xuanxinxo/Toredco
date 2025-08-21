@@ -16,6 +16,13 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true, // Bỏ qua lỗi ESLint
   },
+  async rewrites() {
+    const backend = process.env.BACKEND_URL || 'http://localhost:4000';
+    return [
+      { source: '/api/auth', destination: `${backend}/api/auth` },
+      { source: '/api/auth/register', destination: `${backend}/api/auth/register` },
+    ];
+  },
   // Thêm cấu hình để bỏ qua một số lỗi phổ biến
   experimental: {
     serverActions: true,

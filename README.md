@@ -2,25 +2,57 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+Backend has been split to `backend/` (Express + Prisma). FE proxies selected routes to BE via rewrites.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### Dev (run FE + BE)
+
+1. Create env files:
+   - `.env` (root): set `BACKEND_URL=http://localhost:4000`
+   - `backend/.env`: copy from `backend/.env.example` and set `MONGODB_URI`, `JWT_SECRET`.
+
+2. Install deps:
+```
+npm install
+cd backend && npm install && cd ..
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3. Run both:
+```
+npm run dev:all
+```
+
+FE: http://localhost:3000  |  BE: http://localhost:4000
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More
+
+### Run with Docker
+
+1) Build and start all services (MongoDB, Backend, Frontend):
+```
+docker compose up --build
+```
+
+2) URLs:
+- Frontend: http://localhost:3000
+- Backend:  http://localhost:4000
+- MongoDB:  mongodb://localhost:27017 (data persisted to `mongo-data` volume)
+
+3) Useful commands:
+```
+# Recreate containers after code changes
+docker compose up --build -d
+
+# View logs
+docker compose logs -f backend
+docker compose logs -f frontend
+
+# Stop all
+docker compose down
+```
 
 To learn more about Next.js, take a look at the following resources:
 
