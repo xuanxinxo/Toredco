@@ -29,6 +29,31 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 
 ## Learn More
 
+### Run with Docker
+
+1) Build and start all services (MongoDB, Backend, Frontend):
+```
+docker compose up --build
+```
+
+2) URLs:
+- Frontend: http://localhost:3000
+- Backend:  http://localhost:4000
+- MongoDB:  mongodb://localhost:27017 (data persisted to `mongo-data` volume)
+
+3) Useful commands:
+```
+# Recreate containers after code changes
+docker compose up --build -d
+
+# View logs
+docker compose logs -f backend
+docker compose logs -f frontend
+
+# Stop all
+docker compose down
+```
+
 To learn more about Next.js, take a look at the following resources:
 
 - [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.

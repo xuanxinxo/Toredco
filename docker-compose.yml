@@ -1,0 +1,47 @@
+version: '3.9'
+
+services:
+  mongo:
+    image: mongo:6
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  backend:
+    build: ./backend
+    container_name: backend
+    environment:
+      - PORT=4000
+      - FRONTEND_ORIGIN=http://localhost:3000
+      - JWT_SECRET=dev-secret
+      - BCRYPT_SALT_ROUNDS=12
+      - MONGODB_URI=mongodb://mongo:27017/toredco
+    depends_on:
+      - mongo
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: frontend
+    environment:
+      - BACKEND_URL=http://backend:4000
+      - NEXT_TELEMETRY_DISABLED=1
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./:/app
+      - /app/node_modules
+
+volumes:
+  mongo-data:
+
